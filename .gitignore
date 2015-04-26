@@ -1,0 +1,7 @@
+*.out
+menge_sponge/obj
+menge_sponge/menge_sponge
+simple_obj_reader/simple_obj_reader
+simple_obj_reader/libbinobjreader.so
+*.so
+

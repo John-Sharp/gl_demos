@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "../simple_obj_reader/bin_obj_reader.hpp"
+#include "../shader_compiler/shader_compiler.hpp"
 
 SDL_GLContext main_context;
 SDL_Window *window;
@@ -42,6 +43,14 @@ void init_sdl_gl_window(int w, int h, const char*title)
         fprintf(stderr, "Failed to initialize GLEW\n");
         exit(1);
     }
+
+    SDL_GL_SetSwapInterval(1);
+
+    // Enable depth test
+    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_CULL_FACE);
+    // Accept fragment if it closer to the camera than the former one
+    glDepthFunc(GL_LESS); 
 }
 
 void destroy_sdl_gl_window()
@@ -61,14 +70,49 @@ int main()
     std::vector<glm::vec2> uvs;
     std::vector<glm::vec3> normals;
 
+    GLuint vao;
+    glGenVertexArrays(1, &vao);
+    glBindVertexArray(vao);
+
     bin_obj_read(
-            "obj", 
-            element_array,
-            vertices,
-            uvs,
-            normals);
+        "obj", 
+        element_array,
+        vertices,
+        uvs,
+        normals);
+
+    GLuint shader_program = compile_shader(
+        "../shaders/simple.vertexshader",
+        "../shaders/simple.fragmentshader");
+    glUseProgram(shader_program);
+
+    GLuint element_bo;
+    glGenBuffers(1, &element_bo);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, element_bo);
+    glBufferData(
+        GL_ELEMENT_ARRAY_BUFFER,
+        element_array.size() * sizeof(element_array[0]),
+        &element_array[0],
+        GL_STATIC_DRAW);
+
+    GLuint vertex_bo;//, uv_bo, normal_bo;
+
+    glGenBuffers(1, &vertex_bo);
+    glBindBuffer(GL_ARRAY_BUFFER, vertex_bo);
+    glBufferData(
+        GL_ARRAY_BUFFER,
+        vertices.size() * sizeof(vertices[0]),
+        &vertices[0],
+        GL_STATIC_DRAW);
+
+    GLint pos_attrib = glGetAttribLocation(shader_program, "position");
+    glVertexAttribPointer(pos_attrib, 3, GL_FLOAT, GL_FALSE, 0, 0);
+    glEnableVertexAttribArray(pos_attrib);
 
     while(carry_on) {
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glDrawElements(GL_TRIANGLES, element_array.size(), GL_UNSIGNED_INT, 0);
+        SDL_GL_SwapWindow(window);
 
         while (SDL_PollEvent(&event)) {
             if (event.type == SDL_QUIT) {

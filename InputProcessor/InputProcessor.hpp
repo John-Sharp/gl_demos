@@ -1,5 +1,5 @@
-#ifndef INPUTPROCESSOR_H
-#define INPUTPROCESSOR_H
+#ifndef INPUT_PROCESSOR_H
+#define INPUT_PROCESSOR_H
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -20,7 +20,11 @@ class InputProcessor
         glm::mat4 get_proj_mat();
         glm::mat4 get_view_mat();
         void compute_direction(double dt);
-        void process_dvent(SDL_Event *event);
-        InputProcessor(double speed, double omega);
+        void process_event(SDL_Event *event);
+        // class input_processor set_position(glm::vec3 position);
+        InputProcessor(
+            double speed,
+            double omega,
+            const glm::vec3 &position);
 };
 #endif

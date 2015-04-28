@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include "../simple_obj_reader/bin_obj_reader.hpp"
 #include "../shader_compiler/shader_compiler.hpp"
+#include "../InputProcessor/InputProcessor.hpp"
 
 SDL_GLContext main_context;
 SDL_Window *window;
@@ -108,6 +109,18 @@ int main()
     GLint pos_attrib = glGetAttribLocation(shader_program, "position");
     glVertexAttribPointer(pos_attrib, 3, GL_FLOAT, GL_FALSE, 0, 0);
     glEnableVertexAttribArray(pos_attrib);
+
+    // Get handle for our "MVP" uniform
+    GLuint MVP_id = glGetUniformLocation(shader_program, "MVP");
+
+    InputProcessor in_processor(0.001, 0.001, glm::vec3(0.0, 0.0, 4));
+
+    glm::mat4 model = glm::mat4(1.0f);
+    glm::mat4 view = in_processor.get_view_mat();
+    glm::mat4 projector = in_processor.get_proj_mat();
+    glm::mat4 MVP = projector * view * model;
+
+    glUniformMatrix4fv(MVP_id, 1, GL_FALSE, &MVP[0][0]);
 
     while(carry_on) {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

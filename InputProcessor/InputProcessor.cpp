@@ -1,14 +1,17 @@
 #include "InputProcessor.hpp"
 #include <iostream>
 
-InputProcessor::InputProcessor(double speed, double omega) :
-    actions(0),
-    theta(M_PI),
-    phi(0),
-    position(0, 0, 6)
+InputProcessor::InputProcessor(
+    double speed,
+    double omega,
+    const glm::vec3 &position) :
+        actions(0),
+        theta(M_PI),
+        phi(0)
 {
     this->speed = speed;
     this->omega = omega;    
+    this->position = position;
 }
 
 enum {
@@ -116,10 +119,10 @@ glm::mat4 InputProcessor::get_view_mat()
     return glm::lookAt(
             this->position,
             this->position + looking_dn,
-            upDn);
+            up_dn);
 }
 
-glm::mat4 InputProcessor::getProjMat()
+glm::mat4 InputProcessor::get_proj_mat()
 {
     return glm::perspective(44.9f, 4.0f / 3.0f, 0.1f, 100.0f);
 }

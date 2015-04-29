@@ -122,8 +122,21 @@ int main()
 
     glUniformMatrix4fv(MVP_id, 1, GL_FALSE, &MVP[0][0]);
 
+    Uint32 curr_time = SDL_GetTicks();
+    Uint32 last_time = SDL_GetTicks();
     while(carry_on) {
+        curr_time = SDL_GetTicks();
+        in_processor.compute_direction((double)(curr_time - last_time));
+        last_time = curr_time;
+
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        view = in_processor.get_view_mat();
+        projector = in_processor.get_proj_mat();
+        MVP = projector * view * model;
+
+        glUniformMatrix4fv(MVP_id, 1, GL_FALSE, &MVP[0][0]);
+
         glDrawElements(GL_TRIANGLES, element_array.size(), GL_UNSIGNED_INT, 0);
         SDL_GL_SwapWindow(window);
 
@@ -131,6 +144,7 @@ int main()
             if (event.type == SDL_QUIT) {
                 carry_on = false;
             }
+            in_processor.process_event(&event);
         }
     }
 

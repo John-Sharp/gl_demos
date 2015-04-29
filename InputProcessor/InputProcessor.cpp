@@ -91,7 +91,6 @@ void InputProcessor::compute_direction(double dt)
     this->position.z += dr * cos(this->theta) * cos(this->phi) * this->speed * dt;
     // this->position.z += dr * this->speed * dt;
 
-    std::cout << this->position.x << ',' << this->position.y << ',' << this->position.z << '\n';
     if (dtheta == 0 && dphi == 0) {
         return;
     }

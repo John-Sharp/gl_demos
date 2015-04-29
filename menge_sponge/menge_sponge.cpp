@@ -98,7 +98,7 @@ int main()
         &element_array[0],
         GL_STATIC_DRAW);
 
-    GLuint vertex_bo;//, uv_bo, normal_bo;
+    GLuint vertex_bo, uv_bo;//, normal_bo;
 
     glGenBuffers(1, &vertex_bo);
     glBindBuffer(GL_ARRAY_BUFFER, vertex_bo);
@@ -111,6 +111,18 @@ int main()
     GLint pos_attrib = glGetAttribLocation(shader_program, "position");
     glVertexAttribPointer(pos_attrib, 3, GL_FLOAT, GL_FALSE, 0, 0);
     glEnableVertexAttribArray(pos_attrib);
+
+    glGenBuffers(1, &uv_bo);
+    glBindBuffer(GL_ARRAY_BUFFER, uv_bo);
+    glBufferData(
+        GL_ARRAY_BUFFER,
+        uvs.size() * sizeof(uvs[0]),
+        &uvs[0],
+        GL_STATIC_DRAW);
+    GLint uv_attrib = glGetAttribLocation(shader_program, "uv");
+    glVertexAttribPointer(uv_attrib, 2, GL_FLOAT, GL_FALSE, 0, 0);
+    glEnableVertexAttribArray(uv_attrib);
+
 
     // Get handle for our "MVP" uniform
     GLuint MVP_id = glGetUniformLocation(shader_program, "MVP");

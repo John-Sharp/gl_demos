@@ -6,6 +6,7 @@
 #include <stdbool.h>
 
 #include <GL/gl.h>
+#define GLM_FORCE_RADIANS
 #include <glm/glm.hpp>
 
 struct face {

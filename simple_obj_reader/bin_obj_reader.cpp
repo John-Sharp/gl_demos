@@ -2,6 +2,7 @@
 #include <stdio.h>
 
 #include <GL/gl.h>
+#define GLM_FORCE_RADIANS
 #include <glm/glm.hpp>
 
 #include "bin_obj_reader.hpp"

@@ -3,6 +3,7 @@
 #include <vector>
 
 #include <GL/gl.h>
+#define GLM_FORCE_RADIANS
 #include <glm/glm.hpp>
 
 void bin_obj_read(

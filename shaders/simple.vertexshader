@@ -1,6 +1,9 @@
 #version 150
 
 in vec3 position;
+in vec2 uv;
+
+out vec2 uv_;
 
 uniform mat4 MVP;
 

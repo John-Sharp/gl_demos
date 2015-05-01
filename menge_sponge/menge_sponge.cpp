@@ -76,6 +76,9 @@ GLuint load_texture(const char *fname)
 
     SDL_FreeSurface(img);
 
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(
         GL_TEXTURE_2D,
@@ -171,6 +174,12 @@ int main()
     glm::mat4 MVP = projector * view * model;
 
     glUniformMatrix4fv(MVP_id, 1, GL_FALSE, &MVP[0][0]);
+
+    // Bind our texture in Texture Unit 0
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, texture_id);
+    // Set our "myTextureSampler" sampler to user Texture Unit 0
+    glUniform1i(texture_id, 0);
 
     Uint32 curr_time = SDL_GetTicks();
     Uint32 last_time = SDL_GetTicks();

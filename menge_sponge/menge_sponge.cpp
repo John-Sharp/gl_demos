@@ -71,8 +71,8 @@ GLuint load_texture(const char *fname)
     glGenTextures(1, &texture_id);
     glBindTexture(GL_TEXTURE_2D, texture_id);
 
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, img->w, img->h,
-            0, GL_RGB, GL_UNSIGNED_BYTE, img->pixels);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, img->w, img->h,
+            0, GL_RGBA, GL_UNSIGNED_BYTE, img->pixels);
 
     SDL_FreeSurface(img);
 

@@ -1,0 +1,40 @@
+#version 150
+
+in vec2 uv_;
+in vec3 position_cameraspace;
+in vec3 normal_cameraspace;
+in vec3 light_direction_cameraspace;
+
+out vec4 out_color;
+
+uniform sampler2D texture_sampler;
+uniform vec3 light_position_cameraspace;
+
+void main()
+{
+    vec4 material_color = texture(texture_sampler, uv_);
+
+    // normalised normal of the fragment
+    vec3 n = normalize(normal_cameraspace);
+    
+    // normalized vector pointing from fragment to the light
+    vec3 l = normalize(light_direction_cameraspace);
+
+    float cos_theta = clamp(dot(n, l), 0, 1);
+    float distance = length(position_cameraspace - light_position_cameraspace);
+    vec4 diffuse_color = material_color * 10 * cos_theta / (distance * distance);
+
+    vec4 ambient_color = material_color * 0.2 ;
+
+    // direction of the reflected light
+    vec3 r = reflect(-l, n);
+
+    // vector pointing towards the eye
+    vec3 e = normalize(-position_cameraspace);
+
+    float cos_alpha = clamp(dot(e, r), 0, 1);
+
+    vec4 specular_color = vec4(1.0, 1.0, 1.0, 1.0) * pow(cos_alpha, 8) * 10. / (distance * distance);
+
+    out_color = diffuse_color + ambient_color + specular_color;
+}

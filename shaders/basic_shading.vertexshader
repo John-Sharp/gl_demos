@@ -1,0 +1,25 @@
+#version 150
+
+in vec3 position_modelspace;
+in vec2 uv;
+in vec3 normal_modelspace;
+
+out vec2 uv_;
+out vec3 position_cameraspace;
+out vec3 normal_cameraspace;
+out vec3 light_direction_cameraspace;
+
+uniform mat4 MV;
+uniform mat4 MVP;
+uniform vec3 light_position_cameraspace;
+
+void main()
+{
+    uv_ = uv;
+    normal_cameraspace = (MV * vec4(normal_modelspace, 0)).xyz;
+    position_cameraspace = (MV * vec4(position_modelspace, 1.0)).xyz;
+    light_direction_cameraspace = light_position_cameraspace - position_cameraspace;
+    
+    
+    gl_Position = MVP * vec4(position_modelspace, 1.0);
+}

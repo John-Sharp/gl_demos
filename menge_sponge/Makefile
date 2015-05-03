@@ -6,11 +6,13 @@ all: menge_sponge.cpp ../simple_obj_reader/bin_obj_reader.cpp \
 	../simple_obj_reader/bin_obj_reader.hpp \
 	../shader_compiler/shader_compiler.cpp \
 	../shader_compiler/shader_compiler.hpp \
+	../utils/utils.cpp ../utils/utils.hpp \
 	../InputProcessor/InputProcessor.cpp \
 	../InputProcessor/InputProcessor.hpp \
     read_menge_grid.cpp read_menge_grid.hpp	
 	$(CC) menge_sponge.cpp ../simple_obj_reader/bin_obj_reader.cpp  \
 		../shader_compiler/shader_compiler.cpp \
+		../utils/utils.cpp \
 		../InputProcessor/InputProcessor.cpp \
 		read_menge_grid.cpp \
 	   $(CFLAGS) -o menge_sponge

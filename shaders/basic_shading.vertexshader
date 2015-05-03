@@ -1,25 +1,27 @@
-#version 150
+#version 330
 
 in vec3 position_modelspace;
 in vec2 uv;
 in vec3 normal_modelspace;
+in vec3 instance_displacement;
 
 out vec2 uv_;
 out vec3 position_cameraspace;
 out vec3 normal_cameraspace;
 out vec3 light_direction_cameraspace;
 
-uniform mat4 MV;
-uniform mat4 MVP;
+uniform mat4 V;
+uniform mat4 P;
 uniform vec3 light_position_cameraspace;
 
 void main()
 {
+    vec3 instance_position = position_modelspace + instance_displacement;
     uv_ = uv;
-    normal_cameraspace = (MV * vec4(normal_modelspace, 0)).xyz;
-    position_cameraspace = (MV * vec4(position_modelspace, 1.0)).xyz;
+    normal_cameraspace = (V * vec4(normal_modelspace, 0)).xyz;
+    position_cameraspace = (V * vec4(instance_position, 1.0)).xyz;
     light_direction_cameraspace = light_position_cameraspace - position_cameraspace;
     
     
-    gl_Position = MVP * vec4(position_modelspace, 1.0);
+    gl_Position = P * V * vec4(instance_position, 1.0);
 }

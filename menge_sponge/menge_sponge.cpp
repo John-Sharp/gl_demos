@@ -4,6 +4,7 @@
 
 #define GLM_FORCE_RADIANS
 #include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_opengl.h>
 #include <SDL2/SDL_image.h>
@@ -12,6 +13,7 @@
 #include "../simple_obj_reader/bin_obj_reader.hpp"
 #include "../shader_compiler/shader_compiler.hpp"
 #include "../InputProcessor/InputProcessor.hpp"
+#include "read_menge_grid.hpp"
 
 #define DEBUG_MODE
 
@@ -143,7 +145,7 @@ int main()
     glBufferData(
         GL_ARRAY_BUFFER,
         vertices.size() * sizeof(vertices[0]),
-        &vertices[0],
+        &vertices[0][0],
         GL_STATIC_DRAW);
 
     GLint pos_attrib = glGetAttribLocation(shader_program, "position_modelspace");
@@ -151,11 +153,12 @@ int main()
     glEnableVertexAttribArray(pos_attrib);
 
     glGenBuffers(1, &uv_bo);
+
     glBindBuffer(GL_ARRAY_BUFFER, uv_bo);
     glBufferData(
         GL_ARRAY_BUFFER,
         uvs.size() * sizeof(uvs[0]),
-        &uvs[0],
+        &uvs[0][0],
         GL_STATIC_DRAW);
     GLint uv_attrib = glGetAttribLocation(shader_program, "uv");
     glVertexAttribPointer(uv_attrib, 2, GL_FLOAT, GL_FALSE, 0, 0);
@@ -166,17 +169,44 @@ int main()
     glBufferData(
             GL_ARRAY_BUFFER,
             normals.size() * sizeof(normals[0]),
-            &normals[0],
+            &normals[0][0],
             GL_STATIC_DRAW);
+
     GLint normal_attrib = glGetAttribLocation(shader_program, "normal_modelspace");
     glVertexAttribPointer(normal_attrib, 3, GL_FLOAT, GL_FALSE, 0, 0);
     glEnableVertexAttribArray(normal_attrib);
 
+    GLuint instance_model_bo;
+    glGenBuffers(1, &instance_model_bo);
+
+
+    std::vector<glm::vec3> instance_displacements;
+    bin_menge_grid_read(
+            "3d_menge_grid_displacements.bin",
+            instance_displacements);
+
+    glBindBuffer(GL_ARRAY_BUFFER, instance_model_bo);
+    glBufferData(
+        GL_ARRAY_BUFFER,
+        instance_displacements.size() * sizeof(instance_displacements[0]),
+        &instance_displacements[0][0],
+        GL_STATIC_DRAW);
+
+    GLint instance_displacement_attrib = glGetAttribLocation(shader_program, "instance_displacement");
+    glEnableVertexAttribArray(instance_displacement_attrib);
+    glVertexAttribPointer(
+            instance_displacement_attrib,
+            3,
+            GL_FLOAT,
+            GL_FALSE,
+            0,0);
+    glVertexAttribDivisor(instance_displacement_attrib, 1);
+    
     GLuint texture_id = load_texture("resources/cube_texture.png");
+
     // GLuint sampler_id = glGetUniformLocation(
     //     shader_program,
     //     "texture_sampler");
-
 
     InputProcessor in_processor(0.001, 0.001, glm::vec3(0.0, 0.0, 4));
 
@@ -188,11 +218,11 @@ int main()
     GLuint light_pos_id = glGetUniformLocation(shader_program, "light_position_cameraspace");
     glm::vec3 light_position_cameraspace(view * glm::vec4(light_position_worldspace, 1.0));
 
-    GLuint MV_id = glGetUniformLocation(shader_program, "MV");
-    glm::mat4 MV = view * model;
+    GLuint V_id = glGetUniformLocation(shader_program, "V");
+    glm::mat4 V = view;
 
-    GLuint MVP_id = glGetUniformLocation(shader_program, "MVP");
-    glm::mat4 MVP = projector * view * model;
+    GLuint P_id = glGetUniformLocation(shader_program, "P");
+    glm::mat4 P = projector;
 
     // Bind our texture in Texture Unit 0
     glActiveTexture(GL_TEXTURE0);
@@ -211,16 +241,17 @@ int main()
 
         view = in_processor.get_view_mat();
         projector = in_processor.get_proj_mat();
-        MVP = projector * view * model;
-        glUniformMatrix4fv(MVP_id, 1, GL_FALSE, &MVP[0][0]);
+        P = projector;
+        glUniformMatrix4fv(P_id, 1, GL_FALSE, &P[0][0]);
 
-        MV = view * model;
-        glUniformMatrix4fv(MV_id, 1, GL_FALSE, &MV[0][0]);
+        V = view;
+        glUniformMatrix4fv(V_id, 1, GL_FALSE, &V[0][0]);
 
         glm::vec3 light_position_cameraspace(view * glm::vec4(light_position_worldspace, 1.0));
         glUniform3f(light_pos_id, light_position_cameraspace.x, light_position_cameraspace.y, light_position_cameraspace.z);
 
-        glDrawElements(GL_TRIANGLES, element_array.size(), GL_UNSIGNED_INT, 0);
+
+        glDrawElementsInstanced(GL_TRIANGLES, element_array.size(), GL_UNSIGNED_INT, 0, instance_displacements.size());
 
 #ifdef DEBUG_MODE
         glUseProgram(0);

@@ -46,4 +46,5 @@ void bin_obj_read(
         sizeof(normals[0]),
         vertices_size,
         fp);
+    fclose(fp);
 }

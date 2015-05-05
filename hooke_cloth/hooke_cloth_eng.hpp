@@ -8,27 +8,8 @@
 #define GLM_FORCE_RADIANS
 #include <glm/glm.hpp>
 
-class Cloth {
-    public:
-    unsigned int w;
-    unsigned int h;
-    std::vector<ClothPt> cloth_pts;
-    double hooke_constant;
-    double equil_length;
-
-    void calc_force();
-    void iterate(double dt);
-    void load_into_buffer(GLuint buffer);
-    Cloth(
-        unsigned int pts_w,
-        unsigned int pts_h,
-        std::vector<glm::vec3> &points,
-        double hooke_constant,
-        double equil_length);
-
-    private:
-    init_points(std::vector<glm::vec3> &points);
-};
+class Cloth;
+class ClothPt;
 
 class ClothPt {
     public:
@@ -44,4 +25,27 @@ class ClothPt {
     void iterate(double dt);
     ClothPt(Cloth *cloth, glm::vec3 *r);
 };
+
+class Cloth {
+    public:
+    unsigned int pts_w;
+    unsigned int pts_h;
+    std::vector<ClothPt> cloth_pts;
+    double hooke_constant;
+    double equil_length;
+
+    void calc_force();
+    void iterate(double dt);
+    void load_into_buffer(GLuint buffer);
+    Cloth(
+        unsigned int pts_w,
+        unsigned int pts_h,
+        std::vector<glm::vec3> &points,
+        double hooke_constant,
+        double equil_length);
+
+    private:
+    void init_points(std::vector<glm::vec3> &points);
+};
+
 #endif

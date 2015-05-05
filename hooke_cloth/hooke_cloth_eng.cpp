@@ -16,12 +16,12 @@ Cloth::Cloth(
 {
     this->pts_w = pts_w;
     this->pts_h = pts_h;
-    this->init_cloth_points(points);
+    this->init_points(pts);
     this->hooke_constant = hooke_constant;
     this->equil_length = equil_length;
 }
 
-Cloth::init_points(std::vector<glm::vec3> &pts)
+void Cloth::init_points(std::vector<glm::vec3> &pts)
 {
     int w = this->pts_w;
     int h = this->pts_h;

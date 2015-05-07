@@ -95,7 +95,8 @@ int main()
 
     InputProcessor in_processor(0.001, 0.001, glm::vec3(0.0, 0.0, 4));
 
-    glm::mat4 model = glm::mat4(1.0f);
+    // maybe use this later...
+    // glm::mat4 model = glm::mat4(1.0f);
     glm::mat4 view = in_processor.get_view_mat();
     glm::mat4 projector = in_processor.get_proj_mat();
 

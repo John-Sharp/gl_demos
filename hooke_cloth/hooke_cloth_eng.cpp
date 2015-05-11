@@ -21,6 +21,21 @@ Cloth::Cloth(
     this->init_points(pts);
     this->hooke_constant = hooke_constant;
     this->equil_length = equil_length;
+
+
+    for (unsigned int i = 0; i < this->cloth_pts.size(); i++) {
+        fprintf(stderr, "cloth pt %d: (%f, %f, %f)\n",i, this->cloth_pts[i].r->x, this->cloth_pts[i].r->y, this->cloth_pts[i].r->z);
+        if (this->cloth_pts[i].right != NULL) {
+            fprintf(stderr, "cloth pt %d right: (%f, %f, %f)\n",i, this->cloth_pts[i].right->r->x, this->cloth_pts[i].right->r->y, this->cloth_pts[i].right->r->z);
+        }
+
+        if (this->cloth_pts[i].above != NULL) {
+            fprintf(stderr, "cloth pt %d above: (%f, %f, %f)\n",i, this->cloth_pts[i].above->r->x, this->cloth_pts[i].above->r->y, this->cloth_pts[i].above->r->z);
+        }
+
+    }
+
+    fprintf(stderr, "GOT HERE!!\n");
 }
 
 void Cloth::init_points(std::vector<glm::vec3> &pts)
@@ -33,10 +48,13 @@ void Cloth::init_points(std::vector<glm::vec3> &pts)
         exit(1);
     }
 
+    this->vertices.resize(w * h);
+
     for (unsigned int j = 0; j < h; j++) {
         for (unsigned int i = 0; i < w; i++) {
             int index = w * j + i;
-            this->cloth_pts.push_back(ClothPt(this, &pts[index]));
+            this->vertices[index] = pts[index];
+            this->cloth_pts.push_back(ClothPt(this, &this->vertices[index]));
             if (i != 0) {
                 this->cloth_pts[index - 1].right = &this->cloth_pts[index]; 
             }
@@ -91,24 +109,22 @@ ClothPt::ClothPt(Cloth *cloth, glm::vec3 *r)
 void ClothPt::calc_force()
 {
     double k = this->cloth->hooke_constant;
-    double x_right = glm::length(*(this->right->r) - *(this->r));
     double x_o = this->cloth->equil_length;
 
-    glm::vec3 d_right = glm::normalize(*(this->right->r) - *(this->r));
-
-    glm::vec3 a_right = (GLfloat)(k *  (x_right - x_o)) * d_right;
-
-    this->a += a_right;
+    glm::vec3 a_right = glm::vec3(0.0f, 0.0f, 0.0f);
     if (this->right) {
+        double x_right = glm::length(*(this->right->r) - *(this->r));
+        glm::vec3 d_right = glm::normalize(*(this->right->r) - *(this->r));
+        a_right = (GLfloat)(k *  (x_right - x_o)) * d_right;
+        this->a += a_right;
         this->right->a -= a_right;
     }
 
-    double x_above = glm::length(*(this->above->r) - *(this->r));
-    glm::vec3 d_above = glm::normalize(*(this->above->r) - *(this->r));
-    glm::vec3 a_above = (GLfloat)(k * (x_above - x_o)) * d_above;
-
-    this->a += a_above;
     if (this->above) {
+        double x_above = glm::length(*(this->above->r) - *(this->r));
+        glm::vec3 d_above = glm::normalize(*(this->above->r) - *(this->r));
+        glm::vec3 a_above = (GLfloat)(k * (x_above - x_o)) * d_above;
+        this->a += a_above;
         this->above->a -= a_above;
     }
 

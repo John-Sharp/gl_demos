@@ -16,6 +16,28 @@
 #include "../InputProcessor/InputProcessor.hpp"
 #include "hooke_cloth_eng.hpp"
 
+void find_uniq_vertices(
+    std::vector<glm::vec3> &vertices,
+    std::vector<glm::vec3> &uniq_vertices,
+    std::vector<GLuint> &vertex_element_array
+) {
+    for (unsigned int i = 0; i < vertices.size(); i++) {
+        bool has_found = false;
+
+        for (unsigned int j = 0; j < uniq_vertices.size(); j++) {
+            if (memcmp(&vertices[i], &uniq_vertices[j], sizeof(vertices[i])) == 0) {
+                has_found = true;
+                vertex_element_array.push_back(j);
+                break;
+            }
+        }
+        if (has_found == false) {
+            uniq_vertices.push_back(vertices[i]);
+            vertex_element_array.push_back(uniq_vertices.size() - 1);
+        }
+    }
+}
+
 int main() 
 {
     SDL_Event event;
@@ -36,6 +58,8 @@ int main()
         vertices,
         uvs,
         normals);
+
+    fprintf(stderr, "element array size: %ld\n", element_array.size());
 
     GLuint shader_program = compile_shader(
         "../shaders/basic_shading.vertexshader",
@@ -91,7 +115,17 @@ int main()
 
     GLuint texture_id = load_texture("resources/cloth_texture.png");
 
-    Cloth cloth = Cloth(4, 4, vertices, 1, 1);
+    std::vector<glm::vec3> uniq_vertices;
+    std::vector<GLuint> vertex_element_array;
+
+    find_uniq_vertices(vertices, uniq_vertices, vertex_element_array); 
+
+
+    fprintf(stderr, "Number of vertices: %ld\n", vertices.size());
+    fprintf(stderr, "Number of uniq vertices: %ld\n", uniq_vertices.size());
+    fprintf(stderr, "Number of vertices elem array: %ld\n", vertex_element_array.size());
+
+    Cloth cloth = Cloth(5, 5, uniq_vertices, 1, 1);
 
     InputProcessor in_processor(0.001, 0.001, glm::vec3(0.0, 0.0, 4));
 
@@ -124,7 +158,7 @@ int main()
         last_time = curr_time;
 
         cloth.calc_force();
-        cloth.iterate((double)(curr_time - last_time));
+        // cloth.iterate((double)(curr_time - last_time));
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 

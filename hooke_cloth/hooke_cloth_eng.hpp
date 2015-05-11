@@ -30,6 +30,7 @@ class Cloth {
     public:
     unsigned int pts_w;
     unsigned int pts_h;
+    std::vector<glm::vec3> vertices;
     std::vector<ClothPt> cloth_pts;
     double hooke_constant;
     double equil_length;

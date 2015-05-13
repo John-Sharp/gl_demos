@@ -48,7 +48,9 @@ void simple_obj_read(
         std::vector<GLuint> &element_array,
         std::vector<glm::vec3> &vertices,
         std::vector<glm::vec2> &uvs,
-        std::vector<glm::vec3> &normals
+        std::vector<glm::vec3> &normals,
+        std::vector<glm::vec3> *ordered_vertices = NULL,
+        std::vector<GLuint> *element_array_vertices_ordered_vertices_map = NULL
 ) {
     FILE *file = fopen(path, "r");
     std::vector<glm::vec3> temp_vertices;
@@ -76,6 +78,9 @@ void simple_obj_read(
                 &vertex.y,
                 &vertex.z);
             temp_vertices.push_back(vertex);
+            if (ordered_vertices) {
+                ordered_vertices->push_back(vertex);
+            }
             continue;
         }
 
@@ -131,6 +136,7 @@ void simple_obj_read(
         vertices.push_back(temp_vertices[it->v - 1]);
         uvs.push_back(temp_uvs[it->t - 1]);
         normals.push_back(temp_normals[it->n - 1]);
+        element_array_vertices_ordered_vertices_map->push_back(it->v - 1);
     }
 
     return;
@@ -140,9 +146,21 @@ void simple_obj_write(
         std::vector<GLuint> &element_array,
         std::vector<glm::vec3> &vertices,
         std::vector<glm::vec2> &uvs,
-        std::vector<glm::vec3> &normals
+        std::vector<glm::vec3> &normals,
+        std::vector<glm::vec3> *ordered_vertices = NULL,
+        std::vector<GLuint> *element_array_vertices_ordered_vertices_map = NULL
 ) {
-    fprintf(stdout, "%lu %lu\n", element_array.size(), vertices.size());
+    if (ordered_vertices) {
+        fprintf(
+            stdout,
+            "%lu %lu %lu\n",
+            element_array.size(),
+            vertices.size(),
+            ordered_vertices->size());
+    } else {
+        fprintf(stdout, "%lu %lu\n", element_array.size(), vertices.size());
+    }
+
     fwrite(
         &element_array[0],
         sizeof(element_array[0]),
@@ -163,6 +181,19 @@ void simple_obj_write(
         sizeof(normals[0]),
         normals.size(),
         stdout);
+
+    if (ordered_vertices) {
+        fwrite(
+            &((*ordered_vertices)[0]),
+            sizeof((*ordered_vertices)[0]),
+            ordered_vertices->size(),
+            stdout);
+        fwrite(
+            &((*element_array_vertices_ordered_vertices_map)[0]),
+            sizeof((*element_array_vertices_ordered_vertices_map)[0]),
+            element_array_vertices_ordered_vertices_map->size(),
+            stdout);
+    }
 }
 
 
@@ -172,17 +203,23 @@ int main(int argc, char *argv[])
     std::vector<glm::vec3> vertices;
     std::vector<glm::vec2> uvs;
     std::vector<glm::vec3> normals;
+    std::vector<glm::vec3> ordered_vertices;
+    std::vector<GLuint> element_array_vertices_ordered_vertices_map;
 
     simple_obj_read(
             argv[1],
             element_array,
             vertices,
             uvs,
-            normals);
+            normals,
+            &ordered_vertices,
+            &element_array_vertices_ordered_vertices_map);
+
     simple_obj_write(
             element_array,
             vertices,
             uvs,
-            normals);
-
+            normals,
+            &ordered_vertices,
+            &element_array_vertices_ordered_vertices_map);
 }

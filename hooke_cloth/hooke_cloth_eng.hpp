@@ -22,7 +22,8 @@ class ClothPt {
     glm::vec3 a;
 
     void calc_force();
-    void iterate(double dt);
+    void iterate();
+    ClothPt();
     ClothPt(Cloth *cloth, glm::vec3 *r);
 };
 
@@ -36,7 +37,7 @@ class Cloth {
     double equil_length;
 
     void calc_force();
-    void iterate(double dt);
+    void iterate();
     void load_into_buffer(GLuint buffer);
     Cloth(
         unsigned int pts_w,

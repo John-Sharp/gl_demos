@@ -15,38 +15,21 @@
 #include "../utils/utils.hpp"
 #include "../InputProcessor/InputProcessor.hpp"
 #include "hooke_cloth_eng.hpp"
+#include "../utils/base_eng/base_eng.hpp"
 
-void find_uniq_vertices(
-    std::vector<glm::vec3> &vertices,
-    std::vector<glm::vec3> &uniq_vertices,
-    std::vector<GLuint> &vertex_element_array
-) {
-    for (unsigned int i = 0; i < vertices.size(); i++) {
-        bool has_found = false;
-
-        for (unsigned int j = 0; j < uniq_vertices.size(); j++) {
-            if (memcmp(&vertices[i], &uniq_vertices[j], sizeof(vertices[i])) == 0) {
-                has_found = true;
-                vertex_element_array.push_back(j);
-                break;
-            }
-        }
-        if (has_found == false) {
-            uniq_vertices.push_back(vertices[i]);
-            vertex_element_array.push_back(uniq_vertices.size() - 1);
-        }
-    }
-}
+enum { WIN_W = 800, WIN_H = 600, FPS = 100 };
 
 int main() 
 {
     SDL_Event event;
-    init_sdl_gl_window(800, 600, "Hooke Cloth");
+    BaseEng engine(WIN_W, WIN_H, "Hooke Cloth", FPS);
     bool carry_on = true;
     std::vector<GLuint> element_array;
     std::vector<glm::vec3> vertices;
     std::vector<glm::vec2> uvs;
     std::vector<glm::vec3> normals;
+    std::vector<glm::vec3> ordered_vertices;
+    std::vector<GLuint> element_array_vertices_ordered_vertices_map;
 
     GLuint vao;
     glGenVertexArrays(1, &vao);
@@ -57,7 +40,9 @@ int main()
         element_array,
         vertices,
         uvs,
-        normals);
+        normals,
+        &ordered_vertices,
+        &element_array_vertices_ordered_vertices_map);
 
     fprintf(stderr, "element array size: %ld\n", element_array.size());
 
@@ -118,14 +103,11 @@ int main()
     std::vector<glm::vec3> uniq_vertices;
     std::vector<GLuint> vertex_element_array;
 
-    find_uniq_vertices(vertices, uniq_vertices, vertex_element_array); 
-
-
     fprintf(stderr, "Number of vertices: %ld\n", vertices.size());
     fprintf(stderr, "Number of uniq vertices: %ld\n", uniq_vertices.size());
     fprintf(stderr, "Number of vertices elem array: %ld\n", vertex_element_array.size());
 
-    Cloth cloth = Cloth(5, 5, uniq_vertices, 1, 1);
+    Cloth cloth = Cloth(5, 5, ordered_vertices, 1, 1);
 
     InputProcessor in_processor(0.001, 0.001, glm::vec3(0.0, 0.0, 4));
 
@@ -150,15 +132,27 @@ int main()
     // Set our sampler to user Texture Unit 0
     glUniform1i(texture_id, 0);
 
-    Uint32 curr_time = SDL_GetTicks();
     Uint32 last_time = SDL_GetTicks();
-    while(carry_on) {
+    Uint32 curr_time = SDL_GetTicks();
+    while (carry_on) {
+        // Work through all elapsed logic frames 
+        while (engine.should_continue_logic_loops()) {
+            cloth.calc_force();
+            cloth.iterate();
+        }
         curr_time = SDL_GetTicks();
         in_processor.compute_direction((double)(curr_time - last_time));
         last_time = curr_time;
 
-        cloth.calc_force();
-        // cloth.iterate((double)(curr_time - last_time));
+        for (unsigned int i = 0; i < element_array_vertices_ordered_vertices_map.size(); i++) {
+            vertices[i] = cloth.vertices[element_array_vertices_ordered_vertices_map[i]];
+        }
+        glBindBuffer(GL_ARRAY_BUFFER, vertex_bo);
+        glBufferData(
+            GL_ARRAY_BUFFER,
+            vertices.size() * sizeof(vertices[0]),
+            &vertices[0][0],
+            GL_STATIC_DRAW);
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -211,7 +205,7 @@ int main()
 
         glUseProgram(shader_program);
 #endif
-        swap_sdl_gl_window();
+        SDL_GL_SwapWindow(engine.window);
 
         while (SDL_PollEvent(&event)) {
             if (event.type == SDL_QUIT) {
@@ -221,6 +215,13 @@ int main()
         }
     }
 
-    destroy_sdl_gl_window();
+    // Cleanup VBO
+    glDeleteBuffers(1, &element_bo);
+    glDeleteBuffers(1, &vertex_bo);
+    glDeleteBuffers(1, &uv_bo);
+    glDeleteBuffers(1, &normal_bo);
+    glDeleteVertexArrays(1, &vao);
+    glDeleteProgram(shader_program);
+
 }
 

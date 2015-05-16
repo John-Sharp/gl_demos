@@ -10,12 +10,15 @@ all: hooke_cloth.cpp hooke_cloth_eng.cpp \
 	../shader_compiler/shader_compiler.hpp \
 	../utils/utils.cpp ../utils/utils.hpp \
 	../InputProcessor/InputProcessor.cpp \
-	../InputProcessor/InputProcessor.hpp
+	../InputProcessor/InputProcessor.hpp \
+	../utils/base_eng/base_eng.cpp \
+	../utils/base_eng/base_eng.hpp
 	$(CC) hooke_cloth.cpp hooke_cloth_eng.cpp \
 		../simple_obj_reader/bin_obj_reader.cpp  \
 		../shader_compiler/shader_compiler.cpp \
 		../utils/utils.cpp \
 		../InputProcessor/InputProcessor.cpp \
+		../utils/base_eng/base_eng.cpp \
 	   $(CFLAGS) -o hooke_cloth
 
 clean:

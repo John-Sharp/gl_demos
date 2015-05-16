@@ -11,6 +11,8 @@ void bin_obj_read(
     std::vector<GLuint> &element_array,
     std::vector<glm::vec3> &vertices,
     std::vector<glm::vec2> &uvs,
-    std::vector<glm::vec3> &normals
+    std::vector<glm::vec3> &normals,
+    std::vector<glm::vec3> *ordered_vertices = NULL,
+    std::vector<GLuint> *element_array_vertices_ordered_vertices_map = NULL
 );
 #endif

@@ -34,8 +34,6 @@ Cloth::Cloth(
         }
 
     }
-
-    fprintf(stderr, "GOT HERE!!\n");
 }
 
 void Cloth::init_points(std::vector<glm::vec3> &pts)
@@ -49,12 +47,13 @@ void Cloth::init_points(std::vector<glm::vec3> &pts)
     }
 
     this->vertices.resize(w * h);
+    this->cloth_pts.resize(w * h);
 
     for (unsigned int j = 0; j < h; j++) {
         for (unsigned int i = 0; i < w; i++) {
             int index = w * j + i;
             this->vertices[index] = pts[index];
-            this->cloth_pts.push_back(ClothPt(this, &this->vertices[index]));
+            this->cloth_pts[index] = ClothPt(this, &this->vertices[index]);
             if (i != 0) {
                 this->cloth_pts[index - 1].right = &this->cloth_pts[index]; 
             }
@@ -83,7 +82,7 @@ void Cloth::calc_force()
     this->cloth_pts[(h - 1) * w].a = glm::vec3(0,0,0);
 }
 
-void Cloth::iterate(double dt)
+void Cloth::iterate()
 {
     unsigned int w = this->pts_w;
     unsigned int h = this->pts_h;
@@ -91,9 +90,19 @@ void Cloth::iterate(double dt)
     for (unsigned int j = 0; j < h; j++) {
         for (unsigned int i = 0; i < w; i++) {
             int index = w * j + i;
-            this->cloth_pts[index].iterate(dt);
+            this->cloth_pts[index].iterate();
         }
     }
+}
+
+ClothPt::ClothPt()
+{
+    this->cloth = NULL;
+    this->r = NULL;
+    this->v = glm::vec3(0,0,0);
+    this->a = glm::vec3(0,0,0);
+    this->right = NULL;
+    this->above = NULL;
 }
 
 ClothPt::ClothPt(Cloth *cloth, glm::vec3 *r)
@@ -109,6 +118,7 @@ ClothPt::ClothPt(Cloth *cloth, glm::vec3 *r)
 void ClothPt::calc_force()
 {
     double k = this->cloth->hooke_constant;
+    k = 0.1f;
     double x_o = this->cloth->equil_length;
 
     glm::vec3 a_right = glm::vec3(0.0f, 0.0f, 0.0f);
@@ -116,26 +126,26 @@ void ClothPt::calc_force()
         double x_right = glm::length(*(this->right->r) - *(this->r));
         glm::vec3 d_right = glm::normalize(*(this->right->r) - *(this->r));
         a_right = (GLfloat)(k *  (x_right - x_o)) * d_right;
-        this->a += a_right;
-        this->right->a -= a_right;
+        this->a += a_right + (0.25f * (this->right->v - this->v));
+        this->right->a -= a_right  + (0.25f * (this->right->v - this->v));
     }
 
     if (this->above) {
         double x_above = glm::length(*(this->above->r) - *(this->r));
         glm::vec3 d_above = glm::normalize(*(this->above->r) - *(this->r));
         glm::vec3 a_above = (GLfloat)(k * (x_above - x_o)) * d_above;
-        this->a += a_above;
-        this->above->a -= a_above;
+        this->a += a_above + (0.25f * (this->above->v - this->v));
+        this->above->a -= a_above + (0.25f * (this->above->v - this->v));
     }
 
     // Addition of gravity
-    this->a += glm::vec3(0,-1,0);
+    this->a += glm::vec3(0,-0.01,0);
 }
 
-void ClothPt::iterate(double dt)
+void ClothPt::iterate()
 {
-    *(this->r) += v * (GLfloat)dt;
-    this->v += a * (GLfloat)dt;
+    *(this->r) += v;
+    this->v += a;
     this->a = glm::vec3(0,0,0);
 }
 

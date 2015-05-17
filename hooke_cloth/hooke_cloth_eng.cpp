@@ -10,16 +10,24 @@
 #include <glm/glm.hpp>
 
 Cloth::Cloth(
+    BaseEng &eng,
     unsigned int pts_w,
     unsigned int pts_h,
     std::vector<glm::vec3> &pts,
+    double g,
     double hooke_constant,
-    double equil_length)
+    double damping_constant,
+    double equil_length) :
+    eng(eng)
 {
     this->pts_w = pts_w;
     this->pts_h = pts_h;
     this->init_points(pts);
-    this->hooke_constant = hooke_constant;
+
+    this->g_frame_unit = g / (eng.fps * eng.fps);
+    this->hooke_constant_frame_unit = hooke_constant / (eng.fps * eng.fps);
+    this->damping_constant_frame_unit = damping_constant / eng.fps;
+
     this->equil_length = equil_length;
 
 
@@ -117,8 +125,9 @@ ClothPt::ClothPt(Cloth *cloth, glm::vec3 *r)
 
 void ClothPt::calc_force()
 {
-    double k = this->cloth->hooke_constant;
-    k = 0.1f;
+    double k = this->cloth->hooke_constant_frame_unit;
+    float D = this->cloth->damping_constant_frame_unit;
+    double g = this->cloth->g_frame_unit;
     double x_o = this->cloth->equil_length;
 
     glm::vec3 a_right = glm::vec3(0.0f, 0.0f, 0.0f);
@@ -126,20 +135,20 @@ void ClothPt::calc_force()
         double x_right = glm::length(*(this->right->r) - *(this->r));
         glm::vec3 d_right = glm::normalize(*(this->right->r) - *(this->r));
         a_right = (GLfloat)(k *  (x_right - x_o)) * d_right;
-        this->a += a_right + (0.25f * (this->right->v - this->v));
-        this->right->a -= a_right  + (0.25f * (this->right->v - this->v));
+        this->a += a_right + (D * (this->right->v - this->v));
+        this->right->a -= a_right  + (D * (this->right->v - this->v));
     }
 
     if (this->above) {
         double x_above = glm::length(*(this->above->r) - *(this->r));
         glm::vec3 d_above = glm::normalize(*(this->above->r) - *(this->r));
         glm::vec3 a_above = (GLfloat)(k * (x_above - x_o)) * d_above;
-        this->a += a_above + (0.25f * (this->above->v - this->v));
-        this->above->a -= a_above + (0.25f * (this->above->v - this->v));
+        this->a += a_above + (D * (this->above->v - this->v));
+        this->above->a -= a_above + (D * (this->above->v - this->v));
     }
 
     // Addition of gravity
-    this->a += glm::vec3(0,-0.01,0);
+    this->a += glm::vec3(0,-g,0);
 }
 
 void ClothPt::iterate()

@@ -37,6 +37,7 @@ BaseEng::BaseEng(
     int h,
     const char *window_title,
     unsigned int fps) :  
+        fps(fps),
         current_frame(0),
         frames_last_render_loop(0),
         should_start_logic_loop(true),

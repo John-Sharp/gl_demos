@@ -107,7 +107,16 @@ int main()
     fprintf(stderr, "Number of uniq vertices: %ld\n", uniq_vertices.size());
     fprintf(stderr, "Number of vertices elem array: %ld\n", vertex_element_array.size());
 
-    Cloth cloth = Cloth(5, 5, ordered_vertices, 1, 1);
+    Cloth cloth(
+        engine,
+        5, // pts_w
+        5, // pts_h
+        ordered_vertices,
+        5, // g
+        50, // hooke constant
+        12, // damping constant
+        1  // equilibrium length
+    );
 
     InputProcessor in_processor(0.001, 0.001, glm::vec3(0.0, 0.0, 4));
 

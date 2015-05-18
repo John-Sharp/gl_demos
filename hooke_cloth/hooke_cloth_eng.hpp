@@ -55,8 +55,10 @@ class Cloth {
         double hooke_constant,
         double damping_constant,
         double equil_length);
+    void add_fixed_pt(unsigned int x, unsigned int y);
     private:
     void init_points(std::vector<glm::vec3> &points);
+    std::vector<unsigned int> fixed_pts;
 };
 
 #endif

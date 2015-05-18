@@ -117,6 +117,8 @@ int main()
         12, // damping constant
         1  // equilibrium length
     );
+    cloth.add_fixed_pt(0, 4);
+    cloth.add_fixed_pt(4, 4);
 
     InputProcessor in_processor(0.001, 0.001, glm::vec3(0.0, 0.0, 4));
 

@@ -30,7 +30,6 @@ Cloth::Cloth(
 
     this->equil_length = equil_length;
 
-
     for (unsigned int i = 0; i < this->cloth_pts.size(); i++) {
         fprintf(stderr, "cloth pt %d: (%f, %f, %f)\n",i, this->cloth_pts[i].r->x, this->cloth_pts[i].r->y, this->cloth_pts[i].r->z);
         if (this->cloth_pts[i].right != NULL) {
@@ -84,10 +83,10 @@ void Cloth::calc_force()
         }
     }
 
-    // At the moment have two hard-coded fixed cloth points
-    // (in the top left and top right of the cloth)
-    this->cloth_pts[(h - 1) * w + w - 1].a = glm::vec3(0,0,0);
-    this->cloth_pts[(h - 1) * w].a = glm::vec3(0,0,0);
+    // Fix the points that need to be fixed
+    for (unsigned int i = 0; i < this->fixed_pts.size(); i++) {
+        this->cloth_pts[this->fixed_pts[i]].a = glm::vec3(0,0,0);
+    }
 }
 
 void Cloth::iterate()
@@ -101,6 +100,23 @@ void Cloth::iterate()
             this->cloth_pts[index].iterate();
         }
     }
+}
+
+void Cloth::add_fixed_pt(unsigned int x, unsigned int y)
+{
+    unsigned int pt_index = this->pts_h * y + x;
+
+    if (pt_index + 1 > this->pts_w * this->pts_h) {
+        return;
+    }
+
+    for (unsigned int i = 0; i < this->fixed_pts.size(); i++) {
+        if (this->fixed_pts[i] == pt_index) {
+            return;
+        }
+    }
+
+    this->fixed_pts.push_back(pt_index);
 }
 
 ClothPt::ClothPt()

@@ -119,9 +119,9 @@ int main()
     
     GLuint texture_id = load_texture("resources/cube_texture.png");
 
-    // GLuint sampler_id = glGetUniformLocation(
-    //     shader_program,
-    //     "texture_sampler");
+    GLuint sampler_id = glGetUniformLocation(
+        shader_program,
+        "texture_sampler");
 
     InputProcessor in_processor(0.001, 0.001, glm::vec3(0.0, 0.0, 4));
 
@@ -142,8 +142,8 @@ int main()
     // Bind our texture in Texture Unit 0
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, texture_id);
-    // Set our sampler to user Texture Unit 0
-    glUniform1i(texture_id, 0);
+    // Set our sampler to use Texture Unit 0
+    glUniform1i(sampler_id, GL_TEXTURE0);
 
     Uint32 curr_time = SDL_GetTicks();
     Uint32 last_time = SDL_GetTicks();

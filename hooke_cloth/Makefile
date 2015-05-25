@@ -12,13 +12,15 @@ all: hooke_cloth.cpp hooke_cloth_eng.cpp \
 	../InputProcessor/InputProcessor.cpp \
 	../InputProcessor/InputProcessor.hpp \
 	../utils/base_eng/base_eng.cpp \
-	../utils/base_eng/base_eng.hpp
+	../utils/base_eng/base_eng.hpp \
+	drawable.hpp drawable.cpp
 	$(CC) hooke_cloth.cpp hooke_cloth_eng.cpp \
 		../simple_obj_reader/bin_obj_reader.cpp  \
 		../shader_compiler/shader_compiler.cpp \
 		../utils/utils.cpp \
 		../InputProcessor/InputProcessor.cpp \
 		../utils/base_eng/base_eng.cpp \
+		drawable.cpp \
 	   $(CFLAGS) -o hooke_cloth
 
 clean:

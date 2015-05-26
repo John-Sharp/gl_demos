@@ -36,6 +36,7 @@ int main()
     glUseProgram(shader_program);
 
     GLuint texture_id = load_texture("resources/cloth_texture.png");
+    GLuint cursor_texture_id = load_texture("resources/cursor_texture.png");
 
     Drawable cloth_drawable(
         "cloth.bin",
@@ -43,6 +44,13 @@ int main()
         vao,
         GL_TEXTURE0,
         texture_id);
+
+    Drawable cursor_drawable(
+        "cursor.bin",
+        shader_program,
+        vao,
+        GL_TEXTURE1,
+        cursor_texture_id);
 
     Cloth cloth(
         engine,
@@ -87,6 +95,7 @@ int main()
         glUniform3f(light_pos_id, light_position_cameraspace.x, light_position_cameraspace.y, light_position_cameraspace.z);
 
         cloth_drawable.draw();
+        //cursor_drawable.draw();
 
 #ifdef DEBUG_MODE
         glUseProgram(0);

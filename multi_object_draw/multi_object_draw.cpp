@@ -41,23 +41,36 @@ class BoalerModel
 
 };
 
-class BoalerModelUnit
+class BoalerModelInstance
+{
+    public:
+        // Model instances model matrix
+        glm::mat4 M;
+
+        // Reference to the linked model
+        BoalerModel model;
+};
+
+class BoalerShaderModelInstanceLink
 {
     public:
         // Reference to this Drawable's vertex array object
         GLuint vao;
 
+        // Reference to the linked shader unit
+        BoalerShaderUnit &shader_unit;
+
+        // Reference to the linked model instance
+        BoalerModelInstance &model_instance;
+}
+
+class BoalerModelUnit
+{
         // Model unit's model matrix
         glm::mat4 M;
 
-        // References to model unit's model matrix
+        // References to model unit's model matrix on the model unit's shader
         GLuint M_id; 
-
-        // References to model unit's shader's position, uv and
-        // normal attributes
-        GLint position_attrib;
-        GLint uv_attrib;
-        GLint normal_attrib;
 
         // Reference to model unit's shader unit
         BoalerShaderUnit &shader_unit
@@ -69,15 +82,22 @@ class BoalerModelUnit
 class BoalerShaderUnit
 {
     public:
+        // vector of model units attached to shader unit
         std::vector<BoalerModelUnit> model_units;
 
         // Reference to shader unit's program
         GLuint program_id;
 
+        // References to model unit's shader's position, uv and
+        // normal attributes
+        GLint position_attr;
+        GLint uv_attr;
+        GLint normal_attr;
+
         // References to shader program's V and P
         // uniforms
-        GLuint V_id;
-        GLuint P_id;
+        GLuint V_unfm;
+        GLuint P_unfm;
 
         // Reference to shader unit's engine
         BoalerEng &engine;
@@ -90,11 +110,16 @@ class BoalerShaderUnit
 
 }
 
+BoalerShaderUnit::render()
+{
+
+}
+
 class BoalerViewUnit
 {
     public:
         // view unit's shader units
-        std::vector<BoalerShaderUnit> shader_units;
+        std::vector<BoalerShaderUnit> &shader_units;
 
         // view unit's view and projection matrices
         glm::mat4 V;

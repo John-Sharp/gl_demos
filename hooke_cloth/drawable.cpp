@@ -8,6 +8,16 @@
 
 void Drawable::draw()
 {
+    glBindVertexArray(vao);
+    glUseProgram(program_id);
+    glActiveTexture(texture_unit);
+    glBindTexture(GL_TEXTURE_2D, texture_id);
+
+    GLuint sampler_id = glGetUniformLocation(
+         program_id,
+         "texture_sampler");
+    glUniform1i(sampler_id, texture_id - 1);
+
     glDrawElements(
         GL_TRIANGLES,
         element_array.size(),
@@ -111,6 +121,7 @@ Drawable::Drawable(
         &element_array_positions_ordered_positions_map);
 
     glBindVertexArray(vao);
+    glUseProgram(program_id);
 
     glGenBuffers(1, &element_array_bo);
     load_element_array_bo();
@@ -139,13 +150,13 @@ Drawable::Drawable(
     glVertexAttribPointer(uv_attrib, 2, GL_FLOAT, GL_FALSE, 0, 0);
     glEnableVertexAttribArray(uv_attrib);
 
-    glActiveTexture(texture_unit);
-    glBindTexture(texture_unit, texture_id);
-    // Set our sampler to use the texture unit
     GLuint sampler_id = glGetUniformLocation(
         program_id,
         "texture_sampler");
-    glUniform1i(sampler_id, texture_unit);
+    glActiveTexture(texture_unit);
+    glBindTexture(GL_TEXTURE_2D, texture_id);
+    // Set our sampler to use the texture unit
+    glUniform1i(sampler_id, texture_id);
 
     M_id = glGetUniformLocation(program_id, "M");
     V_id = glGetUniformLocation(program_id, "V");

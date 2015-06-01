@@ -35,6 +35,12 @@ int main()
         "../shaders/basic_shading.fragmentshader");
     glUseProgram(shader_program);
 
+    GLuint program_cursor = compile_shader(
+        "../shaders/simple_shader.vertexshader",
+        "../shaders/simple_shader.fragmentshader");
+    glUseProgram(program_cursor);
+    glUseProgram(shader_program);
+
     GLuint texture_id = load_texture("resources/cloth_texture.png");
     GLuint cursor_texture_id = load_texture("resources/cursor_texture.png");
 
@@ -45,10 +51,14 @@ int main()
         GL_TEXTURE0,
         texture_id);
 
+    GLuint vao_cursor;
+    glGenVertexArrays(1, &vao_cursor);
+    glBindVertexArray(vao_cursor);
+
     Drawable cursor_drawable(
         "cursor.bin",
         shader_program,
-        vao,
+        vao_cursor,
         GL_TEXTURE1,
         cursor_texture_id);
 
@@ -74,6 +84,7 @@ int main()
     Uint32 last_time = SDL_GetTicks();
     Uint32 curr_time = SDL_GetTicks();
     while (carry_on) {
+
         // Work through all elapsed logic frames 
         while (engine.should_continue_logic_loops()) {
             cloth.calc_force();
@@ -95,7 +106,7 @@ int main()
         glUniform3f(light_pos_id, light_position_cameraspace.x, light_position_cameraspace.y, light_position_cameraspace.z);
 
         cloth_drawable.draw();
-        //cursor_drawable.draw();
+        cursor_drawable.draw();
 
 #ifdef DEBUG_MODE
         glUseProgram(0);

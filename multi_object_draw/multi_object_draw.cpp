@@ -48,7 +48,7 @@ class BoalerModelInstance
         glm::mat4 M;
 
         // Reference to the linked model
-        BoalerModel model;
+        BoalerModel &model;
 };
 
 class BoalerShaderModelInstanceLink
@@ -64,27 +64,9 @@ class BoalerShaderModelInstanceLink
         BoalerModelInstance &model_instance;
 }
 
-class BoalerModelUnit
-{
-        // Model unit's model matrix
-        glm::mat4 M;
-
-        // References to model unit's model matrix on the model unit's shader
-        GLuint M_id; 
-
-        // Reference to model unit's shader unit
-        BoalerShaderUnit &shader_unit
-
-    private:
-
-}
-
 class BoalerShaderUnit
 {
     public:
-        // vector of model units attached to shader unit
-        std::vector<BoalerModelUnit> model_units;
-
         // Reference to shader unit's program
         GLuint program_id;
 
@@ -94,8 +76,9 @@ class BoalerShaderUnit
         GLint uv_attr;
         GLint normal_attr;
 
-        // References to shader program's V and P
+        // References to shader program's M, V and P
         // uniforms
+        GLuint M_id; 
         GLuint V_unfm;
         GLuint P_unfm;
 
@@ -112,47 +95,54 @@ class BoalerShaderUnit
 
 BoalerShaderUnit::render()
 {
+    for (unsigned int i = 0; i < model_instance_links.size(); i++) {
+        model_instance_links[i].model_instance.render();
+    }
 
 }
 
 class BoalerViewUnit
 {
     public:
-        // view unit's shader units
-        std::vector<BoalerShaderUnit> &shader_units;
+        // vector to list of view unit's shader units
+        std::vector<BoalerViewShaderLink> &shader_links;
 
         // view unit's view and projection matrices
         glm::mat4 V;
         glm::mat4 P;
 
         // Handler method that gets called just prior
-        // to the rendering of this view unit
-        void pre_view_handler();
-
-        void pre_shader_unit_render_handler(BoalerShaderUnit &shader_unit);
+        // to the rendering of each shader unit
+        void (*pre_shader_unit_render_handler)(BoalerViewShaderLink &link);
 
         void render();
-
 
     private:
 
 };
 
-BoalerViewUnit::pre_shader_unit_render_handler(BoalerShaderUnit &shader_unit)
+class BoalerViewShaderLink
 {
-    return;
-}
+    public:
+        // References to the link's view and shader units
+        BoalerViewUnit &view_unit;
+        BoalerShaderUnit &shader_unit;
+
+        // list of model units that should be rendered with this shader and view unit
+        std::vector<BoalerShaderModelInstanceLink> model_units_links;
+};
 
 BoalerViewUnit::render()
 {
-    for (unsigned int i = 0; i < shader_units.size(); i++) {
+    for (unsigned int i = 0; i < shader_links.size(); i++) {
         // set the shader's view and projection matrices
-        GLuint V_id = shader_units[i].V_id;
-        GLuint P_id = shader_units[i].P_id;
+        BoalerShaderUnit &shader_unit = shader_links[i].shader_unit;
+        GLuint V_id = shader_unit.V_id;
+        GLuint P_id = shader_unit.P_id;
         glUniformMatrix4fv(V_id, 1, GL_FALSE, &V[0][0]);
         glUniformMatrix4fv(P_id, 1, GL_FALSE, &P[0][0]);
-        pre_shader_unit_render_handler(shader_units[i]);
-        shader_units[i].render();
+        pre_shader_unit_render_handler(shader_links[i]);
+        shader_unit.render();
     }
 }
 

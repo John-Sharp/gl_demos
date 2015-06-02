@@ -136,13 +136,18 @@ BoalerViewUnit::render()
 {
     for (unsigned int i = 0; i < shader_links.size(); i++) {
         // set the shader's view and projection matrices
-        BoalerShaderUnit &shader_unit = shader_links[i].shader_unit;
+        BoalerViewShaderLink &shader_link = shader_links[i];
+        BoalerShaderUnit &shader_unit = shader_link.shader_unit;
         GLuint V_id = shader_unit.V_id;
         GLuint P_id = shader_unit.P_id;
         glUniformMatrix4fv(V_id, 1, GL_FALSE, &V[0][0]);
         glUniformMatrix4fv(P_id, 1, GL_FALSE, &P[0][0]);
-        pre_shader_unit_render_handler(shader_links[i]);
-        shader_unit.render();
+        pre_shader_unit_render_handler(shader_link);
+        for (unsigned int j = 0; j < shader_link.model_units_links.size(); j++) {
+            BoalerShaderModelInstanceLink &model_instance_link = \
+                shader_link.model_instance_links[j].model_instance;
+            model_instance.render();
+        }
     }
 }
 
@@ -150,7 +155,7 @@ class BoalerEng
 {
     public:
         std::vector<BoalerModel> models;
-        std::vector<BoalerModelUnit> model_units;
+        std::vector<BoalerModelInstance> model_instance;
         std::vector<BoalerSharderUnit> shader_units;
         std::vector<BoalerViewUnit> view_units;
 

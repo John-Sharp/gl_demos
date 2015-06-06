@@ -1,0 +1,14 @@
+#version 150
+
+in vec2 uv_;
+
+out vec4 out_color;
+
+uniform sampler2D texture_sampler;
+
+void main()
+{
+    vec4 material_color = texture(texture_sampler, uv_);
+
+    out_color = material_color;
+}

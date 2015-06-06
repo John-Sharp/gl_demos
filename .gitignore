@@ -5,5 +5,7 @@ menge_sponge/menge_sponge
 menge_sponge/gen_menge_grid
 simple_obj_reader/simple_obj_reader
 simple_obj_reader/libbinobjreader.so
+hooke_cloth/hooke_cloth
+multi_object_draw/multi_object_draw
 *.so
 

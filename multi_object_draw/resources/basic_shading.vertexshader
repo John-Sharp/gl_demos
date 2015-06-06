@@ -1,0 +1,18 @@
+#version 330
+
+in vec3 position_modelspace;
+in vec2 uv;
+in vec3 normal_modelspace;
+
+out vec2 uv_;
+
+uniform mat4 M;
+uniform mat4 V;
+uniform mat4 P;
+
+void main()
+{
+    uv_ = uv;
+    
+    gl_Position = P * V * vec4(position_modelspace, 1.0);
+}

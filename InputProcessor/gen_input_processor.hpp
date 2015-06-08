@@ -11,25 +11,25 @@ class binding {
         SDL_Keycode k;
         states_enum s;
 
-    friend bool operator== (const binding &a, SDL_Keycode ck) {
+        friend bool operator== (const binding &a, SDL_Keycode ck) {
             if (a.k == ck) {
                 return true;
             }
             return false;
-    }
+        }
 
-    friend bool operator< (const binding &a, const binding &b)
-    {
-        if (a.k == b.k && a.s == b.s) {
+        friend bool operator< (const binding &a, const binding &b)
+        {
+            if (a.k == b.k && a.s == b.s) {
+                return false;
+            }
+    
+            if (a.k <= b.k) {
+                return true;
+            }
+
             return false;
         }
-    
-        if (a.k <= b.k) {
-            return true;
-        }
-    
-        return false;
-    }
 };
 
 template <class states_enum> class GenInputProcessor {
@@ -78,10 +78,14 @@ void GenInputProcessor<states_enum>::process_input(SDL_Event *event)
     SDL_Keycode key = event->key.keysym.sym;
 
     typename std::set<binding<states_enum> >::iterator res = \
-        std::find_if(bindings.begin(), bindings.end(), key);
+        std::find(bindings.begin(), bindings.end(), key);
 
     if (res != bindings.end()) {
-        active_states.insert(res->s);
+        if (event->key.type == SDL_KEYDOWN) {
+            active_states.insert(res->s);
+        } else {
+            active_states.erase(res->s);
+        }
     }
 }
 

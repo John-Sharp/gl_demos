@@ -14,9 +14,12 @@
 #include "../utils/base_eng/base_eng.hpp"
 #include "../shader_compiler/shader_compiler.hpp"
 #include "../utils/utils.hpp"
+#include "../InputProcessor/gen_input_processor.hpp"
 #include "boaler.hpp"
 
 enum { WIN_W = 800, WIN_H = 600, FPS = 100 };
+
+enum game_states { TEST_STATE1, TEST_STATE2, TEST_STATE3 };
 
 int main()
 {
@@ -51,14 +54,22 @@ int main()
     beng.reg_model(&model);
     beng.reg_model_unit(&model_unit);
 
+    GenInputProcessor<game_states> input_processor;
+    input_processor.add_key_binding(SDLK_DOWN, TEST_STATE1); 
+
     while(carry_on) {
         beng.render();
         SDL_GL_SwapWindow(engine.window);
+
+        if (input_processor.is_state_active(TEST_STATE1)) {
+            fprintf(stderr, "state 1 active");
+        }
 
         while (SDL_PollEvent(&event)) {
             if (event.type == SDL_QUIT) {
                 carry_on = false;
             }
+            input_processor.process_input(&event);
         }
     }
 }

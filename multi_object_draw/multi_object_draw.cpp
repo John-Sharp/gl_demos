@@ -58,6 +58,7 @@ int main()
     input_processor.add_key_binding(SDLK_DOWN, TEST_STATE1); 
 
     while(carry_on) {
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         beng.render();
         SDL_GL_SwapWindow(engine.window);
 

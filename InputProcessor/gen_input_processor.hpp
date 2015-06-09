@@ -32,7 +32,10 @@ class binding {
         }
 };
 
-template <class states_enum> class GenInputProcessor {
+class BaseInputProcessor {
+};
+
+template <class states_enum> class GenInputProcessor : public BaseInputProcessor {
     public:
         void test_meth(states_enum s);
         void add_key_binding(SDL_Keycode k, states_enum s);

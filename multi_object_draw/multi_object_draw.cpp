@@ -16,15 +16,47 @@
 #include "../utils/utils.hpp"
 #include "../InputProcessor/gen_input_processor.hpp"
 #include "boaler.hpp"
+#include "../cameras/fp_camera.hpp"
 
 enum { WIN_W = 800, WIN_H = 600, FPS = 100 };
 
-enum game_states { TEST_STATE1, TEST_STATE2, TEST_STATE3 };
+enum game_states { MV_UP, MV_DOWN, MV_LEFT, MV_RIGHT, MV_FORWARD };
+
+unsigned int direction_fn(const BaseEng &eng)
+{
+    unsigned int direction = CAM_MV_NONE;
+    GenInputProcessor<game_states> *input_processor = static_cast<GenInputProcessor<game_states> *>(eng.input_processor);
+
+    if (input_processor->is_state_active(MV_UP)) {
+        direction |= CAM_MV_UP;
+    }
+    if (input_processor->is_state_active(MV_DOWN)) {
+        direction |= CAM_MV_DOWN;
+    }
+    if (input_processor->is_state_active(MV_LEFT)) {
+        direction |= CAM_MV_LEFT;
+    }
+    if (input_processor->is_state_active(MV_RIGHT)) {
+        direction |= CAM_MV_RIGHT;
+    }
+    if (input_processor->is_state_active(MV_FORWARD)) {
+        direction |= CAM_MV_FORWARD;
+    }
+    return direction;
+}
 
 int main()
 {
     SDL_Event event;
-    BaseEng engine(WIN_W, WIN_H, "Hooke Cloth", FPS);
+
+    GenInputProcessor<game_states> input_processor;
+    input_processor.add_key_binding(SDLK_UP, MV_UP);
+    input_processor.add_key_binding(SDLK_DOWN, MV_DOWN);
+    input_processor.add_key_binding(SDLK_LEFT, MV_LEFT);
+    input_processor.add_key_binding(SDLK_RIGHT, MV_RIGHT);
+    input_processor.add_key_binding(SDLK_a, MV_FORWARD);
+
+    BaseEng engine(WIN_W, WIN_H, "Hooke Cloth", FPS, static_cast<BaseInputProcessor *>(&input_processor));
     bool carry_on = true;
 
     GLuint shader_program = compile_shader(
@@ -54,17 +86,26 @@ int main()
     beng.reg_model(&model);
     beng.reg_model_unit(&model_unit);
 
-    GenInputProcessor<game_states> input_processor;
-    input_processor.add_key_binding(SDLK_DOWN, TEST_STATE1); 
+
+    FpCamera camera(
+        engine,
+        0.1,
+        0.1,
+        glm::vec3(0.0, 0.0, 4),
+        direction_fn);
 
     while(carry_on) {
+
+        // Work through all elapsed logic frames 
+        while (engine.should_continue_logic_loops()) {
+            camera.compute_direction();
+        }
+
+        view_unit.V = camera.get_V();
+
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         beng.render();
         SDL_GL_SwapWindow(engine.window);
-
-        if (input_processor.is_state_active(TEST_STATE1)) {
-            fprintf(stderr, "state 1 active");
-        }
 
         while (SDL_PollEvent(&event)) {
             if (event.type == SDL_QUIT) {

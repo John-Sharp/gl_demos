@@ -10,12 +10,14 @@ all: multi_object_draw.cpp boaler.cpp \
 	../shader_compiler/shader_compiler.hpp \
 	../utils/utils.cpp ../utils/utils.hpp \
 	../InputProcessor/gen_input_processor.hpp \
+	../cameras/fp_camera.cpp ../cameras/fp_camera.hpp \
 	../utils/base_eng/base_eng.cpp \
 	../utils/base_eng/base_eng.hpp
 	$(CC) multi_object_draw.cpp boaler.cpp \
 		../simple_obj_reader/bin_obj_reader.cpp  \
 		../shader_compiler/shader_compiler.cpp \
 		../utils/utils.cpp \
+		../cameras/fp_camera.cpp \
 		../utils/base_eng/base_eng.cpp \
 	   $(CFLAGS) -o multi_object_draw
 

@@ -36,10 +36,12 @@ BaseEng::BaseEng(
     int w,
     int h,
     const char *window_title,
-    unsigned int fps) :  
+    unsigned int fps,
+    BaseInputProcessor *input_processor) :  
         fps(fps),
         current_frame(0),
         frames_last_render_loop(0),
+        input_processor(input_processor),
         should_start_logic_loop(true),
         whole_frames_to_do(0),
         start_time(0)

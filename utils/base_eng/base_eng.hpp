@@ -9,6 +9,8 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_opengl.h>
 
+#include "../../InputProcessor/gen_input_processor.hpp"
+
 
 class BaseEng
 {
@@ -22,12 +24,16 @@ class BaseEng
 
         bool should_continue_logic_loops();
 
+        BaseInputProcessor *input_processor;
+
         BaseEng(
             int w,
             int h,
             const char *window_title,
-            unsigned int fps);
+            unsigned int fps,
+            BaseInputProcessor *input_processor);
         ~BaseEng();
+
 
 
     private:

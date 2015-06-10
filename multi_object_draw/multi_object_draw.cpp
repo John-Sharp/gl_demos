@@ -5,6 +5,7 @@
 #define GLM_FORCE_RADIANS
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/matrix_inverse.hpp>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_opengl.h>
 #include <SDL2/SDL_image.h>
@@ -102,6 +103,7 @@ int main()
         glm::vec3(0.0, 1.0, 0.0));
 
     glm::mat4 P = glm::perspective(44.9f, 4.0f / 3.0f, 0.1f, 100.0f);
+
     BoalerViewUnit view_unit(V, P);
 
     BoalerModel model("triangle.bin");
@@ -110,12 +112,30 @@ int main()
     BoalerVSLink vs_link(view_unit, shader_unit);
     BoalerVSLModelUnitLink vslm_link(vs_link, model_unit);
 
+    V = glm::mat4(1);
+    P = glm::ortho(
+        -4.0f / 3.0f, // left
+        4.0f / 3.0f, // right
+        -1.0f, // bottom
+        1.0f, // top
+        -0.1f, // near
+        100.0f // far
+        ); 
+    BoalerViewUnit view_unit_billboard(V, P);
+    BoalerModel model_rect("rectangle.bin");
+    BoalerModelUnit model_unit_rect(glm::translate(glm::mat4(), glm::vec3(glm::inverseTranspose(P) * glm::vec4(glm::vec3(1.2f, 1.0f, 0.0f), 0))), ts[1].texture_unit_index, ts[1].texture_id, model_rect);
+    BoalerVSLink vs_link_billboard(view_unit_billboard, shader_unit);
+    BoalerVSLModelUnitLink vslm_link_billboard(vs_link_billboard, model_unit_rect);
+
     BoalerEng beng;
     beng.reg_view_unit(&view_unit);
     beng.reg_shader_unit(&shader_unit);
     beng.reg_model(&model);
     beng.reg_model_unit(&model_unit);
 
+    beng.reg_view_unit(&view_unit_billboard);
+    beng.reg_model(&model_rect);
+    beng.reg_model_unit(&model_unit_rect);
 
     FpCamera camera(
         engine,

@@ -14,5 +14,5 @@ void main()
 {
     uv_ = uv;
     
-    gl_Position = P * V * vec4(position_modelspace, 1.0);
+    gl_Position = P * V * M * vec4(position_modelspace, 1.0);
 }

@@ -20,7 +20,8 @@
 
 enum { WIN_W = 800, WIN_H = 600, FPS = 100 };
 
-enum game_states { MV_UP, MV_DOWN, MV_LEFT, MV_RIGHT, MV_FORWARD };
+enum game_states { MV_UP, MV_DOWN, MV_LEFT, MV_RIGHT, MV_FORWARD,
+    CHANGE_TEXTURE };
 
 unsigned int direction_fn(const BaseEng &eng)
 {
@@ -45,6 +46,31 @@ unsigned int direction_fn(const BaseEng &eng)
     return direction;
 }
 
+struct texture_struct {
+    unsigned int texture_unit_index;
+    GLuint texture_id;
+};
+
+void change_texture(const BaseEng &eng, BoalerModelUnit &mu, const texture_struct *ts)
+{
+    GenInputProcessor<game_states> *input_processor = static_cast<GenInputProcessor<game_states> *>(eng.input_processor);
+
+    static bool texture_should_change = true;
+    static unsigned int i = 0;
+
+    if (input_processor->is_state_active(CHANGE_TEXTURE) && texture_should_change) {
+        i = (i + 1) % 2;
+        mu.texture_unit_index = ts[i].texture_unit_index;
+        mu.texture_id = ts[i].texture_id;
+        texture_should_change = false;
+        return;
+    }
+
+    if (!input_processor->is_state_active(CHANGE_TEXTURE)) {
+        texture_should_change = true;
+    }
+}
+
 int main()
 {
     SDL_Event event;
@@ -55,6 +81,7 @@ int main()
     input_processor.add_key_binding(SDLK_LEFT, MV_LEFT);
     input_processor.add_key_binding(SDLK_RIGHT, MV_RIGHT);
     input_processor.add_key_binding(SDLK_a, MV_FORWARD);
+    input_processor.add_key_binding(SDLK_s, CHANGE_TEXTURE);
 
     BaseEng engine(WIN_W, WIN_H, "Hooke Cloth", FPS, static_cast<BaseInputProcessor *>(&input_processor));
     bool carry_on = true;
@@ -64,7 +91,10 @@ int main()
         "resources/basic_shading.fragmentshader");
     BoalerShaderUnit shader_unit(shader_program);
 
-    GLuint texture_id = load_texture("resources/test_texture.png");
+    texture_struct ts[2] = {
+        { .texture_unit_index = 0, .texture_id = load_texture("resources/test_texture.png") },
+        { .texture_unit_index = 1, .texture_id = load_texture("resources/test_texture2.png") }
+    };
 
     glm::mat4 V = glm::lookAt(
         glm::vec3(0.0, 0.0, 4.0),
@@ -75,7 +105,7 @@ int main()
     BoalerViewUnit view_unit(V, P);
 
     BoalerModel model("triangle.bin");
-    BoalerModelUnit model_unit(glm::mat4(), 0, texture_id, model);
+    BoalerModelUnit model_unit(glm::mat4(), ts[0].texture_unit_index, ts[0].texture_id, model);
 
     BoalerVSLink vs_link(view_unit, shader_unit);
     BoalerVSLModelUnitLink vslm_link(vs_link, model_unit);
@@ -102,6 +132,7 @@ int main()
         }
 
         view_unit.V = camera.get_V();
+        change_texture(engine, model_unit, ts);
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         beng.render();

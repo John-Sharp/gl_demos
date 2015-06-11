@@ -112,8 +112,8 @@ int main()
     BoalerVSLink vs_link(view_unit, shader_unit);
     BoalerVSLModelUnitLink vslm_link(vs_link, model_unit);
 
-    V = glm::mat4(1);
-    P = glm::ortho(
+    glm::mat4 V_bb(1);
+    glm::mat4 P_bb = glm::ortho(
         -4.0f / 3.0f, // left
         4.0f / 3.0f, // right
         -1.0f, // bottom
@@ -121,9 +121,24 @@ int main()
         -0.1f, // near
         100.0f // far
         ); 
-    BoalerViewUnit view_unit_billboard(V, P);
+
+    double r_bb = 1.05; // radius billboard is distanced from triangle centre
+    glm::vec3 bb_displacement(0.0f, r_bb + 0.75f * 0.2f, 0.0f);
+    glm::mat4 M_bb = glm::scale(glm::mat4(1), glm::vec3(0.2, 0.2, 0.2));
+    M_bb = glm::translate(M_bb, bb_displacement);
+    glm::vec3 transformed_displacement_bb = glm::vec3(glm::inverseTranspose(P) * \
+            vslm_link.vs_link.view_unit.P * \
+            vslm_link.vs_link.view_unit.V * \
+            vslm_link.model_unit.M * \
+            glm::vec4(bb_displacement, 0));
+    M_bb = glm::translate(M_bb, transformed_displacement_bb);
+    
+    BoalerViewUnit view_unit_billboard(V_bb, P_bb);
     BoalerModel model_rect("rectangle.bin");
-    BoalerModelUnit model_unit_rect(glm::translate(glm::mat4(), glm::vec3(glm::inverseTranspose(P) * glm::vec4(glm::vec3(1.2f, 1.0f, 0.0f), 0))), ts[1].texture_unit_index, ts[1].texture_id, model_rect);
+    // BoalerModelUnit model_unit_rect(glm::translate(glm::mat4(), glm::vec3(glm::inverseTranspose(P) * glm::vec4(glm::vec3(1.2f, 1.0f, 0.0f), 0))), ts[1].texture_unit_index, ts[1].texture_id, model_rect);
+
+    BoalerModelUnit model_unit_rect(M_bb, ts[1].texture_unit_index, ts[1].texture_id, model_rect);
+
     BoalerVSLink vs_link_billboard(view_unit_billboard, shader_unit);
     BoalerVSLModelUnitLink vslm_link_billboard(vs_link_billboard, model_unit_rect);
 

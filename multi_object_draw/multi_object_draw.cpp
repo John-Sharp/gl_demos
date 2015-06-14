@@ -18,6 +18,9 @@
 #include "../InputProcessor/gen_input_processor.hpp"
 #include "boaler.hpp"
 #include "../cameras/fp_camera.hpp"
+#include "../billboard/billboard.hpp"
+#include "../text_texture/text_texture.hpp"
+#include "mo_billboard.hpp"
 
 enum { WIN_W = 800, WIN_H = 600, FPS = 100 };
 
@@ -112,46 +115,8 @@ int main()
     BoalerVSLink vs_link(view_unit, shader_unit);
     BoalerVSLModelUnitLink vslm_link(vs_link, model_unit);
 
-    glm::mat4 V_bb(1);
-    glm::mat4 P_bb = glm::ortho(
-        -4.0f / 3.0f, // left
-        4.0f / 3.0f, // right
-        -1.0f, // bottom
-        1.0f, // top
-        -0.1f, // near
-        100.0f // far
-        ); 
-
-    double r_bb = 0.577; // radius billboard centre is distanced from triangle centre
-    glm::vec3 bb_displacement(0.0f, r_bb, 0.0f);
-//    glm::vec3 bb_displacement(0.0f, 0.0f, 0.0f);
-    glm::mat4 M_bb = glm::scale(glm::mat4(1), glm::vec3(0.2, 0.2, 0.2));
-    // M_bb = glm::translate(glm::mat4(1), bb_displacement) * M_bb;
-    glm::mat4 M_bb_predisplacement = glm::translate(glm::mat4(1), glm::vec3(0.0f, 0.75f * 0.2f, 0.0f)) * M_bb;
-
-
-    glm::vec3 transformed_displacement_bb = glm::vec3(vslm_link.vs_link.view_unit.P * \
-            vslm_link.vs_link.view_unit.V * \
-            vslm_link.model_unit.M * \
-            glm::vec4(bb_displacement, 1));
-
-    transformed_displacement_bb.x /= transformed_displacement_bb.z;
-    transformed_displacement_bb.y /= transformed_displacement_bb.z;
-    transformed_displacement_bb.z = 0.0f;
-
-    transformed_displacement_bb = glm::vec3(glm::inverseTranspose(P_bb) * \
-                glm::vec4(transformed_displacement_bb, 0));
-
-    M_bb = glm::translate(glm::mat4(1), transformed_displacement_bb) * M_bb_predisplacement;
-    
-    BoalerViewUnit view_unit_billboard(V_bb, P_bb);
-    BoalerModel model_rect("rectangle.bin");
-    // BoalerModelUnit model_unit_rect(glm::translate(glm::mat4(), glm::vec3(glm::inverseTranspose(P) * glm::vec4(glm::vec3(1.2f, 1.0f, 0.0f), 0))), ts[1].texture_unit_index, ts[1].texture_id, model_rect);
-
-    BoalerModelUnit model_unit_rect(M_bb, ts[1].texture_unit_index, ts[1].texture_id, model_rect);
-
-    BoalerVSLink vs_link_billboard(view_unit_billboard, shader_unit);
-    BoalerVSLModelUnitLink vslm_link_billboard(vs_link_billboard, model_unit_rect);
+    MoBillboard::prep(shader_unit);
+    MoBillboard bb(vslm_link, 1, 0.8);
 
     BoalerEng beng;
     beng.reg_view_unit(&view_unit);
@@ -159,9 +124,9 @@ int main()
     beng.reg_model(&model);
     beng.reg_model_unit(&model_unit);
 
-    beng.reg_view_unit(&view_unit_billboard);
-    beng.reg_model(&model_rect);
-    beng.reg_model_unit(&model_unit_rect);
+    beng.reg_view_unit(bb.view_unit);
+    beng.reg_model(bb.model);
+    beng.reg_model_unit(&bb.model_unit);
 
     FpCamera camera(
         engine,
@@ -169,7 +134,6 @@ int main()
         0.1,
         glm::vec3(0.0, 0.0, 4),
         direction_fn);
-
     while(carry_on) {
 
         // Work through all elapsed logic frames 
@@ -180,32 +144,7 @@ int main()
         view_unit.V = camera.get_V();
         change_texture(engine, model_unit, ts);
 
-        // transformed_displacement_bb = glm::vec3(glm::inverseTranspose(P_bb) * \
-        //         vslm_link.vs_link.view_unit.P * \
-        //         vslm_link.vs_link.view_unit.V * \
-        //         vslm_link.model_unit.M * \
-        //         glm::vec4(bb_displacement, 1));
-
-
-        transformed_displacement_bb = glm::vec3( vslm_link.vs_link.view_unit.P * \
-                vslm_link.vs_link.view_unit.V * \
-                vslm_link.model_unit.M * \
-                glm::vec4(bb_displacement, 1));
-        transformed_displacement_bb.x /= transformed_displacement_bb.z;
-        transformed_displacement_bb.y /= transformed_displacement_bb.z;
-        transformed_displacement_bb.z = 0.0f;
-        fprintf(stderr, "displacement of triangle is: (%f, %f, %f)\n", transformed_displacement_bb.x, transformed_displacement_bb.y, transformed_displacement_bb.z);
-
-        transformed_displacement_bb = glm::vec3(glm::inverseTranspose(P_bb) * \
-                glm::vec4(transformed_displacement_bb, 0));
-
-        // transformed_displacement_bb = glm::vec3(glm::inverseTranspose(P_bb) * \
-        //         glm::vec4(-0.33f, 0.0f, 0.0f, 1.0f));
-        fprintf(stderr, "displacement of triangle in window coordinates is: (%f, %f, %f)\n", transformed_displacement_bb.x, transformed_displacement_bb.y, transformed_displacement_bb.z);
-
-        M_bb = glm::translate(glm::mat4(1), transformed_displacement_bb) * M_bb_predisplacement;
-        // model_unit_rect.M = M_bb;
-
+        bb.bb.update_pos();
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         beng.render();

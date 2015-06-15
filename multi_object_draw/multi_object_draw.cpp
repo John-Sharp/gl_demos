@@ -21,6 +21,7 @@
 #include "../billboard/billboard.hpp"
 #include "../text_texture/text_texture.hpp"
 #include "mo_billboard.hpp"
+#include "mo_eng.hpp"
 
 enum { WIN_W = 800, WIN_H = 600, FPS = 100 };
 
@@ -87,7 +88,7 @@ int main()
     input_processor.add_key_binding(SDLK_a, MV_FORWARD);
     input_processor.add_key_binding(SDLK_s, CHANGE_TEXTURE);
 
-    BaseEng engine(WIN_W, WIN_H, "Hooke Cloth", FPS, static_cast<BaseInputProcessor *>(&input_processor));
+    MoEng engine(WIN_W, WIN_H, "Hooke Cloth", FPS, static_cast<BaseInputProcessor *>(&input_processor));
     bool carry_on = true;
 
     GLuint shader_program = compile_shader(
@@ -97,7 +98,7 @@ int main()
 
     texture_struct ts[2] = {
         { .texture_unit_index = 0, .texture_id = load_texture("resources/test_texture.png") },
-        { .texture_unit_index = 1, .texture_id = load_texture("resources/test_texture2.png") }
+        { .texture_unit_index = 0, .texture_id = load_texture("resources/test_texture2.png") }
     };
 
     glm::mat4 V = glm::lookAt(

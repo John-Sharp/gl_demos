@@ -15,7 +15,8 @@ all: multi_object_draw.cpp boaler.cpp \
 	../text_texture/text_texture.cpp ../text_texture/text_texture.hpp \
 	mo_billboard.cpp mo_billboard.hpp \
 	../utils/base_eng/base_eng.cpp \
-	../utils/base_eng/base_eng.hpp
+	../utils/base_eng/base_eng.hpp \
+	mo_eng.hpp mo_eng.cpp
 	$(CC) multi_object_draw.cpp boaler.cpp \
 		../simple_obj_reader/bin_obj_reader.cpp  \
 		../shader_compiler/shader_compiler.cpp \
@@ -25,6 +26,7 @@ all: multi_object_draw.cpp boaler.cpp \
 		../text_texture/text_texture.cpp \
 		mo_billboard.cpp \
 		../utils/base_eng/base_eng.cpp \
+		mo_eng.cpp \
 	   $(CFLAGS) -o multi_object_draw
 
 clean:

@@ -134,6 +134,7 @@ int main()
         0.1,
         glm::vec3(0.0, 0.0, 4),
         direction_fn);
+    glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
     while(carry_on) {
 
         // Work through all elapsed logic frames 

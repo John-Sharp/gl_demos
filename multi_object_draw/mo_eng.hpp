@@ -9,6 +9,21 @@ enum {
     NUMBER_OF_SHADERS = 1
 };
 
+class MoObject {
+    public:
+        MoObject();
+        static void prep(MoEng *eng);
+            
+        static MoEng *eng;
+        unsigned int model_index;
+        unsigned int texture_index;
+        unsigned int shader_index;
+        MoBillboard billboard;
+        BoalerVSLModelUnitLink vslm_link;
+        BoalerModelUnit model_unit;
+
+};
+
 class MoEng : public BaseEng {
     public:
 

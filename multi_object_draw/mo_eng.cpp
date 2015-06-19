@@ -7,6 +7,16 @@ enum {
     BASE_MODEL_RECTANGLE = 1
 };
 
+MoObject::prep(MoEng *objects_eng)
+{
+    eng = objects_eng;
+}
+
+MoObject::MoObject() :
+    model_index(0),        
+    texture_index(eng.textures),
+{}
+
 MoEng::MoEng(
         int w,
         int h,

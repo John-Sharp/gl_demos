@@ -17,7 +17,7 @@ enum {
 };
 
 enum game_states { MV_UP, MV_DOWN, MV_LEFT, MV_RIGHT, MV_FORWARD,
-    CHANGE_TEXTURE };
+    CHANGE_TEXTURE, CHANGE_MODEL };
 
 typedef class MoBillboard MoBillboard;
 typedef class MoEng MoEng;
@@ -26,7 +26,8 @@ class MoObject {
     public:
         MoObject();
         static void prep(MoEng *eng);
-        void change_model(unsigned int model_index);
+        void change_model(unsigned int new_model_index);
+        void change_model_on_request();
             
         static MoEng *eng;
         unsigned int model_index;
@@ -36,6 +37,12 @@ class MoObject {
         BoalerVSLModelUnitLink *vslm_link;
         MoBillboard *billboard;
 
+};
+
+struct mo_model_template {
+    BoalerModel *model;
+    GLfloat r_bb;
+    std::vector<GLuint> textures;
 };
 
 class MoEng : public BaseEng {
@@ -52,8 +59,7 @@ class MoEng : public BaseEng {
 
         BoalerEng beng;
         BoalerShaderUnit billboard_shader_unit;
-        BoalerModel *models[NUMBER_OF_BASE_MODELS];
-        std::vector<GLuint> model_textures[NUMBER_OF_BASE_MODELS];
+        mo_model_template model_templates[NUMBER_OF_BASE_MODELS];
         BoalerShaderUnit *shaders[NUMBER_OF_SHADERS];
         BoalerViewUnit view_unit;
         BoalerVSLink *view_shader_links[NUMBER_OF_SHADERS];

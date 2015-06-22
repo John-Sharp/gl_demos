@@ -10,26 +10,47 @@ void MoObject::prep(MoEng *objects_eng)
 
 MoObject::MoObject() :
     model_index(0),       
-    texture_index(eng->model_textures[0][0]),
+    texture_index(eng->model_templates[model_index].textures[0]),
     shader_index(0)
 {
     model_unit = new BoalerModelUnit(
         glm::mat4(1),
         0,
         texture_index,
-        *eng->models[model_index]);
+        *eng->model_templates[model_index].model);
 
     vslm_link = new BoalerVSLModelUnitLink(
         *eng->view_shader_links[shader_index],
         *model_unit);
 
-    billboard = new MoBillboard(*vslm_link, 0, 0.8f);
+    billboard = new MoBillboard(*vslm_link, 0, eng->model_templates[model_index].r_bb);
 }
 
-void  MoObject::change_model(unsigned int model_index)
+void  MoObject::change_model(unsigned int new_model_index)
 {
-    model_unit->model = eng->models[model_index];
+    model_index = new_model_index;
+    model_unit->model = eng->model_templates[new_model_index].model;
+    billboard->bb.mother_radius = eng->model_templates[new_model_index].r_bb;
     vslm_link->update_model_unit(*model_unit);
+}
+
+void MoObject::change_model_on_request()
+{
+    GenInputProcessor<game_states> *input_processor
+        = static_cast<GenInputProcessor<game_states> *>(eng->input_processor);
+    static bool model_should_change = true;
+
+    if (input_processor->is_state_active(CHANGE_MODEL) && model_should_change) {
+        unsigned int new_model_index = (model_index + 1) % NUMBER_OF_BASE_MODELS; 
+        change_model(new_model_index);
+
+        model_should_change = false;
+        return;
+    }
+
+    if (!input_processor->is_state_active(CHANGE_MODEL)) {
+        model_should_change = true;
+    }
 }
 
 MoObject &MoEng::add_model(unsigned int model_index)
@@ -68,21 +89,23 @@ MoEng::MoEng(
     custom_ip->add_key_binding(SDLK_RIGHT, MV_RIGHT);
     custom_ip->add_key_binding(SDLK_a, MV_FORWARD);
     custom_ip->add_key_binding(SDLK_s, CHANGE_TEXTURE);
+    custom_ip->add_key_binding(SDLK_m, CHANGE_MODEL);
 
 
     beng.reg_view_unit(&view_unit);
 
-    // Set up model library
-    models[BASE_MODEL_TRIANGLE] = new BoalerModel("triangle.bin");
-    models[BASE_MODEL_RECTANGLE] = new BoalerModel("rectangle.bin");
-
-    // Set up texture library for each base model
+    // Set up model template library
     // BASE_MODEL_TRIANGLE:
-    model_textures[BASE_MODEL_TRIANGLE].push_back(load_texture("resources/test_texture.png"));
-    model_textures[BASE_MODEL_TRIANGLE].push_back(load_texture("resources/test_texture2.png"));
+    model_templates[BASE_MODEL_TRIANGLE].model = new BoalerModel("triangle.bin");
+    model_templates[BASE_MODEL_TRIANGLE].r_bb = 0.8f;
+    model_templates[BASE_MODEL_TRIANGLE].textures.push_back(load_texture("resources/test_texture.png"));
+    model_templates[BASE_MODEL_TRIANGLE].textures.push_back(load_texture("resources/test_texture2.png"));
+
     // BASE_MODEL_RECTANGLE:
-    model_textures[BASE_MODEL_RECTANGLE].push_back(load_texture("resources/test_texture.png"));
-    model_textures[BASE_MODEL_RECTANGLE].push_back(load_texture("resources/test_texture2.png"));
+    model_templates[BASE_MODEL_RECTANGLE].model = new BoalerModel("rectangle.bin");
+    model_templates[BASE_MODEL_RECTANGLE].r_bb = 1.2f;
+    model_templates[BASE_MODEL_RECTANGLE].textures.push_back(load_texture("resources/test_texture.png"));
+    model_templates[BASE_MODEL_RECTANGLE].textures.push_back(load_texture("resources/test_texture2.png"));
 
     // Set up shader unit library
     GLuint shader_program = compile_shader(
@@ -108,6 +131,9 @@ void MoEng::render()
     ) {
         i->billboard->bb.update_pos();
     }
+
+    MoObject &active_mo_object = objects[0];
+    active_mo_object.change_model_on_request();
 
     beng.render();
 }

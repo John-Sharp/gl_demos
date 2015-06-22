@@ -12,10 +12,16 @@
 #include "../text_texture/text_texture.hpp"
 #include "../billboard/billboard.hpp"
 
+#include "mo_eng.hpp"
+
+typedef class MoEng MoEng;
+
 class MoBillboard {
     public:
 
-        static void prep(BoalerShaderUnit &shader_unit);
+        static void prep(
+            MoEng *eng,
+            BoalerShaderUnit &shader_unit);
 
         MoBillboard(
             const BoalerVSLModelUnitLink &mother_vslm_link,

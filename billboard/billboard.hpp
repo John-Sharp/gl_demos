@@ -11,8 +11,8 @@ class Billboard {
             GLfloat mother_radius
             );
 
-        const BoalerVSLModelUnitLink &mother;
-        BoalerVSLModelUnitLink &bb_vsl_model_link;
+        const BoalerVSLModelUnitLink *mother;
+        BoalerVSLModelUnitLink *bb_vsl_model_link;
         GLfloat mother_radius;
 
         glm::mat4 M_pre_translate;

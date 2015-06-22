@@ -2,20 +2,45 @@
 #include "../shader_compiler/shader_compiler.hpp"
 #include "../utils/utils.hpp"
 
-enum {
-    BASE_MODEL_TRIANGLE = 0,
-    BASE_MODEL_RECTANGLE = 1
-};
-
-MoObject::prep(MoEng *objects_eng)
+MoEng *MoObject::eng = NULL;
+void MoObject::prep(MoEng *objects_eng)
 {
     eng = objects_eng;
 }
 
 MoObject::MoObject() :
-    model_index(0),        
-    texture_index(eng.textures),
-{}
+    model_index(0),       
+    texture_index(eng->model_textures[0][0]),
+    shader_index(0)
+{
+    model_unit = new BoalerModelUnit(
+        glm::mat4(1),
+        0,
+        texture_index,
+        *eng->models[model_index]);
+
+    vslm_link = new BoalerVSLModelUnitLink(
+        *eng->view_shader_links[shader_index],
+        *model_unit);
+
+    billboard = new MoBillboard(*vslm_link, 0, 0.8f);
+}
+
+void  MoObject::change_model(unsigned int model_index)
+{
+    model_unit->model = eng->models[model_index];
+    vslm_link->update_model_unit(*model_unit);
+}
+
+MoObject &MoEng::add_model(unsigned int model_index)
+{
+    MoObject mobj;
+    mobj.change_model(model_index);
+
+    objects.push_back(mobj);
+
+    return objects.back();
+}
 
 MoEng::MoEng(
         int w,
@@ -23,8 +48,20 @@ MoEng::MoEng(
         const char *window_title,
         unsigned int fps,
         BaseInputProcessor *input_processor) :
-    BaseEng(w, h, window_title, fps, input_processor)
+    BaseEng(w, h, window_title, fps, input_processor),
+    beng(BoalerEng()),
+    billboard_shader_unit(compile_shader(
+        "resources/basic_shading.vertexshader",
+        "resources/basic_shading.fragmentshader")),
+    view_unit(BoalerViewUnit(
+        glm::lookAt(
+            glm::vec3(0.0, 0.0, 4.0),
+            glm::vec3(0.0, 0.0, -1.0),
+            glm::vec3(0.0, 1.0, 0.0)),
+        glm::perspective(44.9f, (float)w / (float)h, 0.1f, 100.0f)))
 {
+    beng.reg_view_unit(&view_unit);
+
     // Set up model library
     models[BASE_MODEL_TRIANGLE] = new BoalerModel("triangle.bin");
     models[BASE_MODEL_RECTANGLE] = new BoalerModel("rectangle.bin");
@@ -44,8 +81,23 @@ MoEng::MoEng(
 
     shaders[0] = new BoalerShaderUnit(shader_program);
 
-    // Set up some sample objects
-    objects.push_back(MoObject());
-    objects.push_back(MoObject());
-    objects[1].setModel(*models[BASE_MODEL_RECTANGLE]);
+    view_shader_links[0] = new BoalerVSLink(view_unit, *shaders[0]);
+
+    // Prepare the static variables of billboard
+    // and MoObject
+    MoBillboard::prep(this, billboard_shader_unit);
+    MoObject::prep(this);
+}
+
+void MoEng::render()
+{
+    for (
+        std::vector<MoObject>::iterator i = objects.begin();
+        i != objects.end();
+        i++
+    ) {
+        i->billboard->bb.update_pos();
+    }
+
+    beng.render();
 }

@@ -28,9 +28,12 @@ SDL_Rect MoBillboard::txt_rect = {
     .h = bb_h
 };
 
-void MoBillboard::prep(BoalerShaderUnit &shader_unit)
-{
+void MoBillboard::prep(
+    MoEng *eng,
+    BoalerShaderUnit &shader_unit
+) {
     view_unit = new BoalerViewUnit(V, P);
+    eng->beng.reg_view_unit(view_unit);
 
     model = new BoalerModel("square.bin");
 

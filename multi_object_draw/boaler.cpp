@@ -57,53 +57,62 @@ BoalerModelUnit::BoalerModelUnit(
         M(M),
         texture_unit_index(texture_unit_index),
         texture_id(texture_id),
-        model(model)
+        model(&model)
 {}
 
 BoalerVSLModelUnitLink::BoalerVSLModelUnitLink(
     BoalerVSLink &vs_link,
     BoalerModelUnit &model_unit) :
-        vs_link(vs_link),
-        model_unit(model_unit)
+        vs_link(&vs_link),
+        model_unit(&model_unit)
 {
     vs_link.model_unit_links.push_back(this);
 
     glGenVertexArrays(1, &vao);
+
+    update_model_unit(model_unit);
+}
+
+void BoalerVSLModelUnitLink::update_model_unit(
+        BoalerModelUnit &new_model_unit
+) {
+    model_unit = &new_model_unit;
+
     glBindVertexArray(vao);
 
     glBindBuffer(
         GL_ELEMENT_ARRAY_BUFFER,
-        model_unit.model.element_array_bo);
+        model_unit->model->element_array_bo);
 
-    glBindBuffer(GL_ARRAY_BUFFER, model_unit.model.position_bo);
+    glBindBuffer(GL_ARRAY_BUFFER, model_unit->model->position_bo);
     glVertexAttribPointer(
-        vs_link.shader_unit.position_attr,
+        vs_link->shader_unit->position_attr,
         3,
         GL_FLOAT,
         GL_FALSE,
         0,
         0);
-    glEnableVertexAttribArray(vs_link.shader_unit.position_attr);
+    glEnableVertexAttribArray(vs_link->shader_unit->position_attr);
 
-    glBindBuffer(GL_ARRAY_BUFFER, model_unit.model.uv_bo);
+    glBindBuffer(GL_ARRAY_BUFFER, model_unit->model->uv_bo);
     glVertexAttribPointer(
-        vs_link.shader_unit.uv_attr,
+        vs_link->shader_unit->uv_attr,
         2,
         GL_FLOAT,
         GL_FALSE,
         0,
         0);
-    glEnableVertexAttribArray(vs_link.shader_unit.uv_attr);
+    glEnableVertexAttribArray(vs_link->shader_unit->uv_attr);
 
-    glBindBuffer(GL_ARRAY_BUFFER, model_unit.model.normal_bo);
+    glBindBuffer(GL_ARRAY_BUFFER, model_unit->model->normal_bo);
     glVertexAttribPointer(
-        vs_link.shader_unit.normal_attr,
+        vs_link->shader_unit->normal_attr,
         3,
         GL_FLOAT,
         GL_FALSE,
         0,
         0);
-    glEnableVertexAttribArray(vs_link.shader_unit.normal_attr);
+    glEnableVertexAttribArray(vs_link->shader_unit->normal_attr);
 
     glBindVertexArray(0);
 }
@@ -113,16 +122,16 @@ void BoalerVSLModelUnitLink::model_unit_linker()
     glBindVertexArray(vao);
 
     glUniformMatrix4fv(
-        vs_link.shader_unit.M_unfm,
+        vs_link->shader_unit->M_unfm,
         1,
         GL_FALSE,
-        &(model_unit.M[0][0]));
+        &(model_unit->M[0][0]));
 
-    glActiveTexture(GL_TEXTURE0 + model_unit.texture_unit_index);
-    glBindTexture(GL_TEXTURE_2D, model_unit.texture_id);
+    glActiveTexture(GL_TEXTURE0 + model_unit->texture_unit_index);
+    glBindTexture(GL_TEXTURE_2D, model_unit->texture_id);
     glUniform1i(
-        vs_link.shader_unit.texture_sampler_unfm,
-        model_unit.texture_unit_index);
+        vs_link->shader_unit->texture_sampler_unfm,
+        model_unit->texture_unit_index);
 
 }
 
@@ -132,7 +141,7 @@ void BoalerVSLModelUnitLink::render()
 
     glDrawElements(
         GL_TRIANGLES,
-        model_unit.model.element_array.size(),
+        model_unit->model->element_array.size(),
         GL_UNSIGNED_INT,
         0);
 
@@ -197,26 +206,26 @@ void BoalerViewUnit::render()
 BoalerVSLink::BoalerVSLink(
     BoalerViewUnit &view_unit,
     BoalerShaderUnit &shader_unit) :
-        view_unit(view_unit),
-        shader_unit(shader_unit)
+        view_unit(&view_unit),
+        shader_unit(&shader_unit)
 {
     view_unit.shader_links.push_back(this);
 }
 
 void BoalerVSLink::shader_unit_linker()
 {
-    glUseProgram(shader_unit.program_id);
+    glUseProgram(shader_unit->program_id);
     glUniformMatrix4fv(
-        shader_unit.V_unfm,
+        shader_unit->V_unfm,
         1,
         GL_FALSE,
-        &(view_unit.V[0][0]));
+        &(view_unit->V[0][0]));
 
     glUniformMatrix4fv(
-        shader_unit.P_unfm,
+        shader_unit->P_unfm,
         1,
         GL_FALSE,
-        &(view_unit.P[0][0]));
+        &(view_unit->P[0][0]));
 }
 
 void BoalerEng::reg_view_unit(BoalerViewUnit *vu)
@@ -245,5 +254,4 @@ void BoalerEng::render()
     for (unsigned int i = 0; i < view_units.size(); i++) {
         view_units[i]->render();
     }
-
 }

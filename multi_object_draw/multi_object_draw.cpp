@@ -88,53 +88,23 @@ int main()
     input_processor.add_key_binding(SDLK_a, MV_FORWARD);
     input_processor.add_key_binding(SDLK_s, CHANGE_TEXTURE);
 
-    MoEng engine(WIN_W, WIN_H, "Hooke Cloth", FPS, static_cast<BaseInputProcessor *>(&input_processor));
+    MoEng engine(
+        WIN_W,
+        WIN_H,
+        "Multi object draw",
+        FPS,
+        static_cast<BaseInputProcessor *>(&input_processor));
     bool carry_on = true;
 
-    GLuint shader_program = compile_shader(
-        "resources/basic_shading.vertexshader",
-        "resources/basic_shading.fragmentshader");
-    BoalerShaderUnit shader_unit(shader_program);
-
-    texture_struct ts[2] = {
-        { .texture_unit_index = 0, .texture_id = load_texture("resources/test_texture.png") },
-        { .texture_unit_index = 0, .texture_id = load_texture("resources/test_texture2.png") }
-    };
-
-    glm::mat4 V = glm::lookAt(
-        glm::vec3(0.0, 0.0, 4.0),
-        glm::vec3(0.0, 0.0, -1.0),
-        glm::vec3(0.0, 1.0, 0.0));
-
-    glm::mat4 P = glm::perspective(44.9f, 4.0f / 3.0f, 0.1f, 100.0f);
-
-    BoalerViewUnit view_unit(V, P);
-
-    BoalerModel model("triangle.bin");
-    BoalerModelUnit model_unit(glm::mat4(), ts[0].texture_unit_index, ts[0].texture_id, model);
-
-    BoalerVSLink vs_link(view_unit, shader_unit);
-    BoalerVSLModelUnitLink vslm_link(vs_link, model_unit);
-
-    MoBillboard::prep(shader_unit);
-    MoBillboard bb(vslm_link, 1, 0.8);
-
-    BoalerEng beng;
-    beng.reg_view_unit(&view_unit);
-    beng.reg_shader_unit(&shader_unit);
-    beng.reg_model(&model);
-    beng.reg_model_unit(&model_unit);
-
-    beng.reg_view_unit(bb.view_unit);
-    beng.reg_model(bb.model);
-    beng.reg_model_unit(&bb.model_unit);
+    engine.add_model(BASE_MODEL_TRIANGLE);
 
     FpCamera camera(
         engine,
-        0.1,
-        0.1,
+        0.8,
+        0.5,
         glm::vec3(0.0, 0.0, 4),
         direction_fn);
+
     glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
     while(carry_on) {
 
@@ -143,13 +113,14 @@ int main()
             camera.compute_direction();
         }
 
-        view_unit.V = camera.get_V();
-        change_texture(engine, model_unit, ts);
+        engine.view_unit.V = camera.get_V();
+        // change_texture(engine, model_unit, ts);
 
-        bb.bb.update_pos();
+        // bb.bb.update_pos();
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        beng.render();
+        // beng.render();
+        engine.render();
         SDL_GL_SwapWindow(engine.window);
 
         while (SDL_PollEvent(&event)) {

@@ -60,14 +60,15 @@ class BoalerModelUnit
             GLuint texture_id,
             BoalerModel &model);
 
+
         // Model unit's model matrix
         glm::mat4 M;
 
         unsigned int texture_unit_index;
         GLuint texture_id;
 
-        // Reference to the linked model
-        BoalerModel &model;
+        // Pointer to the linked model
+        BoalerModel *model;
 };
 
 class BoalerShaderUnit
@@ -121,8 +122,8 @@ class BoalerVSLink
             BoalerShaderUnit &shader_unit);
 
         // References to the link's view and shader units
-        BoalerViewUnit &view_unit;
-        BoalerShaderUnit &shader_unit;
+        BoalerViewUnit *view_unit;
+        BoalerShaderUnit *shader_unit;
 
         // Handler method that is called and links the ViewUnit's
         // member variables with the shader's uniforms
@@ -138,10 +139,11 @@ class BoalerVSLModelUnitLink
         BoalerVSLModelUnitLink(
             BoalerVSLink &vs_link,
             BoalerModelUnit &model_unit);
+        void update_model_unit(BoalerModelUnit &model_unit);
 
         // Pointers to the linked VS link and model unit
-        BoalerVSLink &vs_link;
-        BoalerModelUnit &model_unit;
+        BoalerVSLink *vs_link;
+        BoalerModelUnit *model_unit;
         
         // Reference to this vertex array object that links this
         // model unit with the shader referenced through this link

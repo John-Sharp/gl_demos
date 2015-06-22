@@ -16,6 +16,9 @@ enum {
     BASE_MODEL_RECTANGLE = 1
 };
 
+enum game_states { MV_UP, MV_DOWN, MV_LEFT, MV_RIGHT, MV_FORWARD,
+    CHANGE_TEXTURE };
+
 typedef class MoBillboard MoBillboard;
 typedef class MoEng MoEng;
 
@@ -42,9 +45,9 @@ class MoEng : public BaseEng {
             int w,
             int h,
             const char *window_title,
-            unsigned int fps,
-            BaseInputProcessor *input_processor);
+            unsigned int fps);
         void render();
+        void process_input(SDL_Event *event);
         MoObject &add_model(unsigned int model_index);
 
         BoalerEng beng;

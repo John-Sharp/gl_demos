@@ -25,9 +25,6 @@
 
 enum { WIN_W = 800, WIN_H = 600, FPS = 100 };
 
-enum game_states { MV_UP, MV_DOWN, MV_LEFT, MV_RIGHT, MV_FORWARD,
-    CHANGE_TEXTURE };
-
 unsigned int direction_fn(const BaseEng &eng)
 {
     unsigned int direction = CAM_MV_NONE;
@@ -80,20 +77,15 @@ int main()
 {
     SDL_Event event;
 
-    GenInputProcessor<game_states> input_processor;
-    input_processor.add_key_binding(SDLK_UP, MV_UP);
-    input_processor.add_key_binding(SDLK_DOWN, MV_DOWN);
-    input_processor.add_key_binding(SDLK_LEFT, MV_LEFT);
-    input_processor.add_key_binding(SDLK_RIGHT, MV_RIGHT);
-    input_processor.add_key_binding(SDLK_a, MV_FORWARD);
-    input_processor.add_key_binding(SDLK_s, CHANGE_TEXTURE);
+//    GenInputProcessor<game_states> input_processor;
 
     MoEng engine(
         WIN_W,
         WIN_H,
         "Multi object draw",
-        FPS,
-        static_cast<BaseInputProcessor *>(&input_processor));
+        FPS); //,
+        // static_cast<BaseInputProcessor *>(&input_processor));
+
     bool carry_on = true;
 
     engine.add_model(BASE_MODEL_TRIANGLE);
@@ -127,7 +119,7 @@ int main()
             if (event.type == SDL_QUIT) {
                 carry_on = false;
             }
-            input_processor.process_input(&event);
+            engine.process_input(&event);
         }
     }
 }

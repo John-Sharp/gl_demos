@@ -46,9 +46,8 @@ MoEng::MoEng(
         int w,
         int h,
         const char *window_title,
-        unsigned int fps,
-        BaseInputProcessor *input_processor) :
-    BaseEng(w, h, window_title, fps, input_processor),
+        unsigned int fps) : 
+    BaseEng(w, h, window_title, fps, NULL),
     beng(BoalerEng()),
     billboard_shader_unit(compile_shader(
         "resources/basic_shading.vertexshader",
@@ -60,6 +59,17 @@ MoEng::MoEng(
             glm::vec3(0.0, 1.0, 0.0)),
         glm::perspective(44.9f, (float)w / (float)h, 0.1f, 100.0f)))
 {
+    GenInputProcessor<game_states> *custom_ip = new GenInputProcessor<game_states>;
+    input_processor = static_cast<BaseInputProcessor *>(custom_ip);
+
+    custom_ip->add_key_binding(SDLK_UP, MV_UP);
+    custom_ip->add_key_binding(SDLK_DOWN, MV_DOWN);
+    custom_ip->add_key_binding(SDLK_LEFT, MV_LEFT);
+    custom_ip->add_key_binding(SDLK_RIGHT, MV_RIGHT);
+    custom_ip->add_key_binding(SDLK_a, MV_FORWARD);
+    custom_ip->add_key_binding(SDLK_s, CHANGE_TEXTURE);
+
+
     beng.reg_view_unit(&view_unit);
 
     // Set up model library
@@ -100,4 +110,11 @@ void MoEng::render()
     }
 
     beng.render();
+}
+
+void MoEng::process_input(SDL_Event *event)
+{
+    GenInputProcessor<game_states> *custom_input_processor
+        = static_cast<GenInputProcessor<game_states> *>(input_processor);
+    custom_input_processor->process_input(event);
 }

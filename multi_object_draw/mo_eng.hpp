@@ -60,6 +60,9 @@ class MoEng : public BaseEng {
             int h,
             const char *window_title,
             unsigned int fps);
+
+        glm::vec3 initial_camera_pos;
+
         void render();
         void process_input(SDL_Event *event);
         MoObject *add_model(unsigned int model_index);

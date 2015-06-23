@@ -77,14 +77,11 @@ int main()
 {
     SDL_Event event;
 
-//    GenInputProcessor<game_states> input_processor;
-
     MoEng engine(
         WIN_W,
         WIN_H,
         "Multi object draw",
-        FPS); //,
-        // static_cast<BaseInputProcessor *>(&input_processor));
+        FPS);
 
     bool carry_on = true;
 
@@ -94,7 +91,7 @@ int main()
         engine,
         0.8,
         0.5,
-        glm::vec3(0.0, 0.0, 4.0),
+        engine.initial_camera_pos,
         direction_fn);
 
     glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
@@ -106,13 +103,11 @@ int main()
         }
 
         engine.view_unit.V = camera.get_V();
-        // change_texture(engine, model_unit, ts);
-
-        // bb.bb.update_pos();
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        // beng.render();
+
         engine.render();
+
         SDL_GL_SwapWindow(engine.window);
 
         while (SDL_PollEvent(&event)) {

@@ -101,21 +101,12 @@ MoObject *MoEng::add_model_on_request()
     }
 
     set_active_object(mobj->object_index);
-    // std::cout << view_unit.V[3][3] << std::endl;
-    // mobj->model_unit->M = view_unit.P * glm::inverse(view_unit.P * view_unit.V);
+    mobj->model_unit->M =
+        glm::affineInverse(view_unit.V)
+        * glm::translate(glm::mat4(1), -1.0f * initial_camera_pos);
 
     glm::mat4 I = view_unit.V * mobj->model_unit->M;
     I = mobj->model_unit->M;
-    fprintf(stderr, 
-            "%f  %f  %f  %f\n"
-            "%f  %f  %f  %f\n"
-            "%f  %f  %f  %f\n"
-            "%f  %f  %f  %f\n\n",
-            I[0][0], I[0][1], I[0][2], I[0][3],
-            I[1][0], I[1][1], I[1][2], I[1][3],
-            I[2][0], I[2][1], I[2][2], I[2][3],
-            I[3][0], I[3][1], I[3][2], I[3][3]);
-    // mobj->model_unit->M = glm::affineInverse(view_unit.V);
 
     return mobj;
 }
@@ -126,6 +117,7 @@ MoEng::MoEng(
         const char *window_title,
         unsigned int fps) : 
     BaseEng(w, h, window_title, fps, NULL),
+    initial_camera_pos(glm::vec3(0.0f, 0.0f, 4.0f)),
     beng(BoalerEng()),
     billboard_shader_unit(compile_shader(
         "resources/basic_shading.vertexshader",

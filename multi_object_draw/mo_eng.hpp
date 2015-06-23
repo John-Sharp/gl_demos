@@ -63,6 +63,8 @@ class MoEng : public BaseEng {
 
         glm::vec3 initial_camera_pos;
 
+        void enter_global_mode();
+        void enter_global_mode_on_request();
         void render();
         void process_input(SDL_Event *event);
         MoObject *add_model(unsigned int model_index);

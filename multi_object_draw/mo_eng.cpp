@@ -188,6 +188,22 @@ MoEng::MoEng(
         NUMBER_OF_MODELS_ALLOWED * sizeof(temp_mobj));
 }
 
+void MoEng::enter_global_mode()
+{
+    active_object = NULL;
+    active_object_index = NUMBER_OF_MODELS_ALLOWED + 1;
+}
+
+void MoEng::enter_global_mode_on_request()
+{
+    GenInputProcessor<game_states> *custom_input_processor
+        = static_cast<GenInputProcessor<game_states> *>(input_processor);
+
+    if (custom_input_processor->is_state_active(GLOBAL_MODE)) {
+        enter_global_mode();
+    }
+}
+
 void MoEng::render()
 {
     for (
@@ -199,6 +215,7 @@ void MoEng::render()
     }
 
     if (active_object) {
+        enter_global_mode_on_request();
         active_object->change_model_on_request();
     } else {
         add_model_on_request();

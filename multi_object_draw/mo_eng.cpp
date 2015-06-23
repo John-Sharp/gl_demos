@@ -1,6 +1,8 @@
 #include "mo_eng.hpp"
 #include "../shader_compiler/shader_compiler.hpp"
 #include "../utils/utils.hpp"
+#include <string.h>
+#include <iostream>
 
 MoEng *MoObject::eng = NULL;
 void MoObject::prep(MoEng *objects_eng)
@@ -8,7 +10,8 @@ void MoObject::prep(MoEng *objects_eng)
     eng = objects_eng;
 }
 
-MoObject::MoObject() :
+MoObject::MoObject(unsigned int object_index) :
+    object_index(object_index),
     model_index(0),       
     texture_index(eng->model_templates[model_index].textures[0]),
     shader_index(0)
@@ -23,7 +26,10 @@ MoObject::MoObject() :
         *eng->view_shader_links[shader_index],
         *model_unit);
 
-    billboard = new MoBillboard(*vslm_link, 0, eng->model_templates[model_index].r_bb);
+    billboard = new MoBillboard(
+        *vslm_link,
+        object_index + 1,
+        eng->model_templates[model_index].r_bb);
 }
 
 void  MoObject::change_model(unsigned int new_model_index)
@@ -53,14 +59,65 @@ void MoObject::change_model_on_request()
     }
 }
 
-MoObject &MoEng::add_model(unsigned int model_index)
-{
-    MoObject mobj;
+MoObject *MoEng::add_model(unsigned int model_index) {
+    unsigned int i;
+    for (i = 0; i < NUMBER_OF_MODELS_ALLOWED; i++) {
+        if (!occupied_indices[i]) {    
+            occupied_indices[i] = true;
+            break;
+        }
+    }
+
+    MoObject mobj(i);
     mobj.change_model(model_index);
 
     objects.push_back(mobj);
+    indexed_objects[i] = &objects.back();
 
-    return objects.back();
+    return &objects.back();
+}
+
+void MoEng::set_active_object(unsigned int new_active_object_index)
+{
+    active_object_index = new_active_object_index;
+    active_object = indexed_objects[active_object_index];
+}
+
+MoObject *MoEng::add_model_on_request()
+{
+    GenInputProcessor<game_states> *custom_input_processor
+        = static_cast<GenInputProcessor<game_states> *>(input_processor);
+    MoObject * mobj = NULL;
+
+    if (
+        custom_input_processor->is_state_active(CHANGE_MODEL)
+        && active_object == NULL
+    ) {
+        mobj = add_model(BASE_MODEL_TRIANGLE);
+    }
+
+    if (!mobj) {
+        return NULL;
+    }
+
+    set_active_object(mobj->object_index);
+    // std::cout << view_unit.V[3][3] << std::endl;
+    // mobj->model_unit->M = view_unit.P * glm::inverse(view_unit.P * view_unit.V);
+
+    glm::mat4 I = view_unit.V * mobj->model_unit->M;
+    I = mobj->model_unit->M;
+    fprintf(stderr, 
+            "%f  %f  %f  %f\n"
+            "%f  %f  %f  %f\n"
+            "%f  %f  %f  %f\n"
+            "%f  %f  %f  %f\n\n",
+            I[0][0], I[0][1], I[0][2], I[0][3],
+            I[1][0], I[1][1], I[1][2], I[1][3],
+            I[2][0], I[2][1], I[2][2], I[2][3],
+            I[3][0], I[3][1], I[3][2], I[3][3]);
+    // mobj->model_unit->M = glm::affineInverse(view_unit.V);
+
+    return mobj;
 }
 
 MoEng::MoEng(
@@ -75,10 +132,12 @@ MoEng::MoEng(
         "resources/basic_shading.fragmentshader")),
     view_unit(BoalerViewUnit(
         glm::lookAt(
-            glm::vec3(0.0, 0.0, 4.0),
             glm::vec3(0.0, 0.0, -1.0),
+            glm::vec3(0.0, 0.3, 0.0),
             glm::vec3(0.0, 1.0, 0.0)),
-        glm::perspective(44.9f, (float)w / (float)h, 0.1f, 100.0f)))
+        glm::perspective(44.9f, (float)w / (float)h, 0.1f, 100.0f))),
+    active_object_index(0),
+    active_object(NULL)
 {
     GenInputProcessor<game_states> *custom_ip = new GenInputProcessor<game_states>;
     input_processor = static_cast<BaseInputProcessor *>(custom_ip);
@@ -90,6 +149,9 @@ MoEng::MoEng(
     custom_ip->add_key_binding(SDLK_a, MV_FORWARD);
     custom_ip->add_key_binding(SDLK_s, CHANGE_TEXTURE);
     custom_ip->add_key_binding(SDLK_m, CHANGE_MODEL);
+
+    custom_ip->add_key_binding(SDLK_ESCAPE, GLOBAL_MODE);
+    custom_ip->add_key_binding(SDLK_1, SELECTED_1);
 
 
     beng.reg_view_unit(&view_unit);
@@ -103,7 +165,7 @@ MoEng::MoEng(
 
     // BASE_MODEL_RECTANGLE:
     model_templates[BASE_MODEL_RECTANGLE].model = new BoalerModel("rectangle.bin");
-    model_templates[BASE_MODEL_RECTANGLE].r_bb = 1.2f;
+    model_templates[BASE_MODEL_RECTANGLE].r_bb = 1.0f;
     model_templates[BASE_MODEL_RECTANGLE].textures.push_back(load_texture("resources/test_texture.png"));
     model_templates[BASE_MODEL_RECTANGLE].textures.push_back(load_texture("resources/test_texture2.png"));
 
@@ -120,6 +182,18 @@ MoEng::MoEng(
     // and MoObject
     MoBillboard::prep(this, billboard_shader_unit);
     MoObject::prep(this);
+
+    bool temp = false;
+    memcpy(
+        occupied_indices,
+        &temp,
+        NUMBER_OF_MODELS_ALLOWED * sizeof(temp));
+
+    MoObject *temp_mobj = NULL;
+    memcpy(
+        indexed_objects,
+        &temp_mobj,
+        NUMBER_OF_MODELS_ALLOWED * sizeof(temp_mobj));
 }
 
 void MoEng::render()
@@ -132,8 +206,11 @@ void MoEng::render()
         i->billboard->bb.update_pos();
     }
 
-    MoObject &active_mo_object = objects[0];
-    active_mo_object.change_model_on_request();
+    if (active_object) {
+        active_object->change_model_on_request();
+    } else {
+        add_model_on_request();
+    }
 
     beng.render();
 }

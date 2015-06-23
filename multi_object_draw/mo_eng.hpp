@@ -6,9 +6,14 @@
 #include "mo_billboard.hpp"
 #include <vector>
 
+#define GLM_FORCE_RADIANS
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_inverse.hpp>
+
 enum {
     NUMBER_OF_BASE_MODELS = 2,
-    NUMBER_OF_SHADERS = 1
+    NUMBER_OF_SHADERS = 1,
+    NUMBER_OF_MODELS_ALLOWED = 9
 };
 
 enum {
@@ -17,19 +22,21 @@ enum {
 };
 
 enum game_states { MV_UP, MV_DOWN, MV_LEFT, MV_RIGHT, MV_FORWARD,
-    CHANGE_TEXTURE, CHANGE_MODEL };
+    CHANGE_TEXTURE, CHANGE_MODEL, GLOBAL_MODE, SELECTED_1 };
 
 typedef class MoBillboard MoBillboard;
 typedef class MoEng MoEng;
 
 class MoObject {
     public:
-        MoObject();
+        MoObject(unsigned int object_index);
         static void prep(MoEng *eng);
         void change_model(unsigned int new_model_index);
         void change_model_on_request();
             
         static MoEng *eng;
+        unsigned int object_index;
+
         unsigned int model_index;
         unsigned int texture_index;
         unsigned int shader_index;
@@ -55,7 +62,10 @@ class MoEng : public BaseEng {
             unsigned int fps);
         void render();
         void process_input(SDL_Event *event);
-        MoObject &add_model(unsigned int model_index);
+        MoObject *add_model(unsigned int model_index);
+        void set_active_object(
+            unsigned int new_active_object_index);
+        MoObject *add_model_on_request();
 
         BoalerEng beng;
         BoalerShaderUnit billboard_shader_unit;
@@ -64,7 +74,11 @@ class MoEng : public BaseEng {
         BoalerViewUnit view_unit;
         BoalerVSLink *view_shader_links[NUMBER_OF_SHADERS];
 
+        unsigned int active_object_index;
+        MoObject *active_object;
+        MoObject *indexed_objects[NUMBER_OF_MODELS_ALLOWED];
         std::vector<MoObject> objects;
+        bool occupied_indices[NUMBER_OF_MODELS_ALLOWED];
 };
 
 #endif

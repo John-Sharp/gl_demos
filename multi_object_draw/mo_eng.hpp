@@ -22,7 +22,18 @@ enum {
 };
 
 enum game_states { MV_UP, MV_DOWN, MV_LEFT, MV_RIGHT, MV_FORWARD,
-    CHANGE_TEXTURE, CHANGE_MODEL, GLOBAL_MODE, SELECTED_1 };
+    CHANGE_TEXTURE, CHANGE_MODEL, GLOBAL_MODE,
+    NO_DIGIT_PRESSED,
+    PRESSED_1,
+    PRESSED_2,
+    PRESSED_3,
+    PRESSED_4,
+    PRESSED_5,
+    PRESSED_6,
+    PRESSED_7,
+    PRESSED_8,
+    PRESSED_9,
+    PRESSED_0 };
 
 typedef class MoBillboard MoBillboard;
 typedef class MoEng MoEng;
@@ -65,6 +76,7 @@ class MoEng : public BaseEng {
 
         void enter_global_mode();
         void enter_global_mode_on_request();
+        void read_for_requested_object();
         void render();
         void process_input(SDL_Event *event);
         MoObject *add_model(unsigned int model_index);
@@ -78,6 +90,9 @@ class MoEng : public BaseEng {
         BoalerShaderUnit *shaders[NUMBER_OF_SHADERS];
         BoalerViewUnit view_unit;
         BoalerVSLink *view_shader_links[NUMBER_OF_SHADERS];
+
+        unsigned int object_index_being_requested;
+        unsigned int figures_input;
 
         unsigned int active_object_index;
         MoObject *active_object;

@@ -128,6 +128,7 @@ MoEng::MoEng(
             glm::vec3(0.0, 0.3, 0.0),
             glm::vec3(0.0, 1.0, 0.0)),
         glm::perspective(44.9f, (float)w / (float)h, 0.1f, 100.0f))),
+    object_index_being_requested(0),
     active_object_index(0),
     active_object(NULL)
 {
@@ -192,6 +193,7 @@ void MoEng::enter_global_mode()
 {
     active_object = NULL;
     active_object_index = NUMBER_OF_MODELS_ALLOWED + 1;
+    object_index_being_requested = 0;
 }
 
 void MoEng::enter_global_mode_on_request()
@@ -201,6 +203,42 @@ void MoEng::enter_global_mode_on_request()
 
     if (custom_input_processor->is_state_active(GLOBAL_MODE)) {
         enter_global_mode();
+    }
+}
+
+void MoEng::read_for_requested_object()
+{
+    static int frames_since_last_entry = 0;
+    static int frames_since_press = 0;
+    static game_states last_digit_pressed = NO_DIGIT_PRESSED;
+
+    int update_limit = 0.5f * fps;
+    int timeout_limit = 0.8f * fps;
+
+    GenInputProcessor<game_states> *custom_input_processor
+        = static_cast<GenInputProcessor<game_states> *>(input_processor);
+
+    if (custom_input_processor->is_state_active(GLOBAL_MODE)) {
+        object_index_being_requested = 0;
+        figures_input = 0;
+        last_digit_pressed = NO_DIGIT_PRESSED;
+
+        return;
+    }
+
+    if (custom_input_processor->is_state_active(PRESSED_1)) {
+        frames_since_press = 0;
+        frames_since_last_entry = 0;
+    }
+
+    if (frames_since_last_entry > timeout_limit) {
+        if (object_index_being_requested == 0) {
+            return;
+        }
+        
+        set_active_object(object_index_being_requested - 1);
+        object_index_being_requested = 0;
+        figures_input = 0;
     }
 }
 
@@ -214,6 +252,7 @@ void MoEng::render()
         i->billboard->bb.update_pos();
     }
 
+    read_for_requested_object();
     if (active_object) {
         enter_global_mode_on_request();
         active_object->change_model_on_request();

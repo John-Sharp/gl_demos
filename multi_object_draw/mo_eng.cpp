@@ -68,13 +68,13 @@ MoObject *MoEng::add_model(unsigned int model_index) {
         }
     }
 
-    MoObject mobj(i);
-    mobj.change_model(model_index);
+    MoObject *mobj = new MoObject(i);
+    mobj->change_model(model_index);
 
-    objects.push_back(mobj);
-    indexed_objects[i] = &objects.back();
+    number_of_objects += 1;
+    indexed_objects[i] = mobj;
 
-    return &objects.back();
+    return mobj;
 }
 
 void MoEng::set_active_object(unsigned int new_active_object_index)
@@ -132,7 +132,8 @@ MoEng::MoEng(
     frames_since_last_entry(0),
     last_digit_pressed(NO_DIGIT_PRESSED),
     active_object_index(0),
-    active_object(NULL)
+    active_object(NULL),
+    number_of_objects(0)
 {
     GenInputProcessor<game_states> *custom_ip = new GenInputProcessor<game_states>;
     input_processor = static_cast<BaseInputProcessor *>(custom_ip);
@@ -275,7 +276,9 @@ void MoEng::read_for_requested_object()
 
     if (custom_input_processor->is_state_active(SUBMIT_REQUEST)) {
         object_index_being_requested -= 1;
-        if (object_index_being_requested < objects.size()) {
+        std::cout << "Requested index " << object_index_being_requested << '\n';
+        if (object_index_being_requested < number_of_objects) {
+            std::cout << "here, setting active object " << object_index_being_requested << '\n';
             set_active_object(object_index_being_requested);
         }
         object_index_being_requested = 0;
@@ -285,12 +288,8 @@ void MoEng::read_for_requested_object()
 
 void MoEng::render()
 {
-    for (
-        std::vector<MoObject>::iterator i = objects.begin();
-        i != objects.end();
-        i++
-    ) {
-        i->billboard->bb.update_pos();
+    for (unsigned int i = 0; i < number_of_objects; i++ ) {
+        indexed_objects[i]->billboard->bb.update_pos();
     }
 
     read_for_requested_object();

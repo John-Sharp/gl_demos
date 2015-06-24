@@ -99,8 +99,8 @@ class MoEng : public BaseEng {
 
         unsigned int active_object_index;
         MoObject *active_object;
+        unsigned int number_of_objects;
         MoObject *indexed_objects[NUMBER_OF_MODELS_ALLOWED];
-        std::vector<MoObject> objects;
         bool occupied_indices[NUMBER_OF_MODELS_ALLOWED];
 };
 

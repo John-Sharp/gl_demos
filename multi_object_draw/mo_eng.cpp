@@ -59,6 +59,23 @@ void MoObject::change_model_on_request()
     }
 }
 
+void MoObject::move(glm::vec3 direction_modelspace)
+{
+    GLfloat model_move_speed = 10.0f / eng->fps;
+    if (direction_modelspace != glm::vec3(0.0f, 0.0f, 0.0f)) {
+        direction_modelspace = glm::normalize(direction_modelspace);
+    }
+
+    model_unit->M = model_unit->M
+        * glm::translate(glm::mat4(1), model_move_speed * direction_modelspace);
+}
+
+void MoObject::rotate(glm::vec3 rotation_axis)
+{
+    model_unit->M = model_unit->M
+        * glm::rotate(glm::mat4(1), 0.1f, rotation_axis);
+}
+
 MoObject *MoEng::add_model(unsigned int model_index) {
     unsigned int i;
     for (i = 0; i < NUMBER_OF_MODELS_ALLOWED; i++) {
@@ -111,6 +128,84 @@ MoObject *MoEng::add_model_on_request()
     return mobj;
 }
 
+
+void MoEng::move_active_object_on_request()
+{
+    GenInputProcessor<game_states> *custom_input_processor
+        = static_cast<GenInputProcessor<game_states> *>(input_processor);
+    if (!active_object) {
+        return;
+    }
+
+    if (custom_input_processor->is_state_active(ROTATE_MODE)) {
+        return;
+    }
+
+    glm::vec3 move_dn(0.0f, 0.0f, 0.0f);
+
+    if (custom_input_processor->is_state_active(MV_RIGHT)) {
+        move_dn += glm::vec3(1.0f, 0.0f, 0.0f);
+    }
+
+    if (custom_input_processor->is_state_active(MV_LEFT)) {
+        move_dn += glm::vec3(-1.0f, 0.0f, 0.0f);
+    }
+
+    if (custom_input_processor->is_state_active(MV_UP)) {
+        move_dn += glm::vec3(0.0f, 1.0f, 0.0f);
+    }
+
+    if (custom_input_processor->is_state_active(MV_DOWN)) {
+        move_dn += glm::vec3(0.0f, -1.0f, 0.0f);
+    }
+
+    if (custom_input_processor->is_state_active(MV_FORWARD)) {
+        move_dn += glm::vec3(0.0f, 0.0f, 1.0f);
+    }
+
+    if (custom_input_processor->is_state_active(MV_BACKWARD)) {
+        move_dn += glm::vec3(0.0f, 0.0f, -1.0f);
+    }
+    active_object->move(move_dn);
+}
+
+void MoEng::rotate_active_object_on_request()
+{
+    GenInputProcessor<game_states> *custom_input_processor
+        = static_cast<GenInputProcessor<game_states> *>(input_processor);
+    if (!active_object) {
+        return;
+    }
+
+    if (!custom_input_processor->is_state_active(ROTATE_MODE)) {
+        return;
+    }
+
+    if (custom_input_processor->is_state_active(MV_RIGHT)) {
+        active_object->rotate(glm::vec3(1.0f, 0.0f, 0.0f));
+    }
+
+    if (custom_input_processor->is_state_active(MV_LEFT)) {
+        active_object->rotate(glm::vec3(-1.0f, 0.0f, 0.0f));
+    }
+
+    if (custom_input_processor->is_state_active(MV_UP)) {
+        active_object->rotate(glm::vec3(0.0f, 1.0f, 0.0f));
+    }
+
+    if (custom_input_processor->is_state_active(MV_DOWN)) {
+        active_object->rotate(glm::vec3(0.0f, -1.0f, 0.0f));
+    }
+
+    if (custom_input_processor->is_state_active(MV_FORWARD)) {
+        active_object->rotate(glm::vec3(0.0f, 0.0f, 1.0f));
+    }
+
+    if (custom_input_processor->is_state_active(MV_BACKWARD)) {
+        active_object->rotate(glm::vec3(0.0f, 0.0f, -1.0f));
+    }
+}
+
 MoEng::MoEng(
         int w,
         int h,
@@ -138,26 +233,29 @@ MoEng::MoEng(
     GenInputProcessor<game_states> *custom_ip = new GenInputProcessor<game_states>;
     input_processor = static_cast<BaseInputProcessor *>(custom_ip);
 
-    custom_ip->add_key_binding(SDLK_UP, MV_UP);
-    custom_ip->add_key_binding(SDLK_DOWN, MV_DOWN);
-    custom_ip->add_key_binding(SDLK_LEFT, MV_LEFT);
-    custom_ip->add_key_binding(SDLK_RIGHT, MV_RIGHT);
-    custom_ip->add_key_binding(SDLK_a, MV_FORWARD);
-    custom_ip->add_key_binding(SDLK_s, CHANGE_TEXTURE);
-    custom_ip->add_key_binding(SDLK_m, CHANGE_MODEL);
+    custom_ip->add_key_binding(SDLK_UP, MV_UP, BINDING_CONTINUOUS);
+    custom_ip->add_key_binding(SDLK_DOWN, MV_DOWN, BINDING_CONTINUOUS);
+    custom_ip->add_key_binding(SDLK_LEFT, MV_LEFT, BINDING_CONTINUOUS);
+    custom_ip->add_key_binding(SDLK_RIGHT, MV_RIGHT, BINDING_CONTINUOUS);
+    custom_ip->add_key_binding(SDLK_a, MV_FORWARD, BINDING_CONTINUOUS);
+    custom_ip->add_key_binding(SDLK_s, MV_BACKWARD, BINDING_CONTINUOUS);
+    custom_ip->add_key_binding(SDLK_n, CHANGE_TEXTURE, BINDING_CONTINUOUS);
+    custom_ip->add_key_binding(SDLK_m, CHANGE_MODEL, BINDING_CONTINUOUS);
 
-    custom_ip->add_key_binding(SDLK_ESCAPE, GLOBAL_MODE);
-    custom_ip->add_key_binding(SDLK_RETURN, SUBMIT_REQUEST);
-    custom_ip->add_key_binding(SDLK_1, PRESSED_1);
-    custom_ip->add_key_binding(SDLK_2, PRESSED_2);
-    custom_ip->add_key_binding(SDLK_3, PRESSED_3);
-    custom_ip->add_key_binding(SDLK_4, PRESSED_4);
-    custom_ip->add_key_binding(SDLK_5, PRESSED_5);
-    custom_ip->add_key_binding(SDLK_6, PRESSED_6);
-    custom_ip->add_key_binding(SDLK_7, PRESSED_7);
-    custom_ip->add_key_binding(SDLK_8, PRESSED_8);
-    custom_ip->add_key_binding(SDLK_9, PRESSED_9);
-    custom_ip->add_key_binding(SDLK_0, PRESSED_0);
+    custom_ip->add_key_binding(SDLK_ESCAPE, GLOBAL_MODE, BINDING_CONTINUOUS);
+    custom_ip->add_key_binding(SDLK_RETURN, SUBMIT_REQUEST, BINDING_CONTINUOUS);
+    custom_ip->add_key_binding(SDLK_1, PRESSED_1, BINDING_CONTINUOUS);
+    custom_ip->add_key_binding(SDLK_2, PRESSED_2, BINDING_CONTINUOUS);
+    custom_ip->add_key_binding(SDLK_3, PRESSED_3, BINDING_CONTINUOUS);
+    custom_ip->add_key_binding(SDLK_4, PRESSED_4, BINDING_CONTINUOUS);
+    custom_ip->add_key_binding(SDLK_5, PRESSED_5, BINDING_CONTINUOUS);
+    custom_ip->add_key_binding(SDLK_6, PRESSED_6, BINDING_CONTINUOUS);
+    custom_ip->add_key_binding(SDLK_7, PRESSED_7, BINDING_CONTINUOUS);
+    custom_ip->add_key_binding(SDLK_8, PRESSED_8, BINDING_CONTINUOUS);
+    custom_ip->add_key_binding(SDLK_9, PRESSED_9, BINDING_CONTINUOUS);
+    custom_ip->add_key_binding(SDLK_0, PRESSED_0, BINDING_CONTINUOUS);
+
+    custom_ip->add_key_binding(SDLK_r, ROTATE_MODE, BINDING_ATOMIC);
 
     beng.reg_view_unit(&view_unit);
 
@@ -296,6 +394,8 @@ void MoEng::render()
     if (active_object) {
         enter_global_mode_on_request();
         active_object->change_model_on_request();
+        move_active_object_on_request();
+        rotate_active_object_on_request();
     } else {
         add_model_on_request();
     }

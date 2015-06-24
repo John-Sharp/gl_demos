@@ -30,6 +30,12 @@ unsigned int direction_fn(const BaseEng &eng)
     unsigned int direction = CAM_MV_NONE;
     GenInputProcessor<game_states> *input_processor = static_cast<GenInputProcessor<game_states> *>(eng.input_processor);
 
+    const MoEng &mo_eng = static_cast<const MoEng &>(eng);
+
+    if (mo_eng.active_object) {
+        return 0;
+    }
+
     if (input_processor->is_state_active(MV_UP)) {
         direction |= CAM_MV_UP;
     }

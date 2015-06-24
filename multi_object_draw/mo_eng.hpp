@@ -22,7 +22,8 @@ enum {
 };
 
 enum game_states { MV_UP, MV_DOWN, MV_LEFT, MV_RIGHT, MV_FORWARD,
-    CHANGE_TEXTURE, CHANGE_MODEL, GLOBAL_MODE,
+    MV_BACKWARD,
+    CHANGE_TEXTURE, CHANGE_MODEL, GLOBAL_MODE, ROTATE_MODE,
     SUBMIT_REQUEST,
     NO_DIGIT_PRESSED,
     PRESSED_1,
@@ -45,6 +46,8 @@ class MoObject {
         static void prep(MoEng *eng);
         void change_model(unsigned int new_model_index);
         void change_model_on_request();
+        void move(glm::vec3 direction_modelspace);
+        void rotate(glm::vec3 rotation_axis);
             
         static MoEng *eng;
         unsigned int object_index;
@@ -85,6 +88,8 @@ class MoEng : public BaseEng {
         void set_active_object(
             unsigned int new_active_object_index);
         MoObject *add_model_on_request();
+        void move_active_object_on_request();
+        void rotate_active_object_on_request();
 
         BoalerEng beng;
         BoalerShaderUnit billboard_shader_unit;

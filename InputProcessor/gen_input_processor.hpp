@@ -5,11 +5,19 @@
 #include <set>
 #include <algorithm>
 
+enum binding_type {
+    BINDING_ATOMIC,      // press button to turn state on,
+                         // press again to switch off
+
+    BINDING_CONTINUOUS   // press button and state turns on,
+                         // release and state turns off
+};
 template <class states_enum>
 class binding {
     public:
         SDL_Keycode k;
         states_enum s;
+        binding_type t;
 
         friend bool operator== (const binding &a, SDL_Keycode ck) {
             if (a.k == ck) {
@@ -38,8 +46,8 @@ class BaseInputProcessor {
 template <class states_enum> class GenInputProcessor : public BaseInputProcessor {
     public:
         void test_meth(states_enum s);
-        void add_key_binding(SDL_Keycode k, states_enum s);
-        void rm_key_binding(SDL_Keycode k, states_enum s);
+        void add_key_binding(SDL_Keycode k, states_enum s, binding_type t);
+        void rm_key_binding(SDL_Keycode k, states_enum s, binding_type t);
         void process_input(SDL_Event *event);
         bool is_state_active(states_enum s);
 
@@ -60,21 +68,24 @@ void GenInputProcessor<states_enum>::test_meth(
 template <class states_enum>
 void GenInputProcessor<states_enum>::add_key_binding(
     SDL_Keycode k,
-    states_enum s)
+    states_enum s,
+    binding_type t)
 {
-    binding<states_enum> b = {.k = k, .s = s};
+    binding<states_enum> b = {.k = k, .s = s, .t = t};
     bindings.insert(b);
 }
        
 template <class states_enum>
 void GenInputProcessor<states_enum>::rm_key_binding(
     SDL_Keycode k,
-    states_enum s)
+    states_enum s,
+    binding_type t)
 {
-    binding<states_enum> b = {.k = k, .s = s};
+    binding<states_enum> b = {.k = k, .s = s, .t = t};
     bindings.erase(b);
 }
 
+#include <iostream>
 template <class states_enum>
 void GenInputProcessor<states_enum>::process_input(SDL_Event *event)
 {
@@ -85,8 +96,12 @@ void GenInputProcessor<states_enum>::process_input(SDL_Event *event)
 
     if (res != bindings.end()) {
         if (event->key.type == SDL_KEYDOWN) {
+            if (res->t == BINDING_ATOMIC && is_state_active(res->s)) {
+                active_states.erase(res->s);
+                return;
+            }
             active_states.insert(res->s);
-        } else {
+        } else if (res->t == BINDING_CONTINUOUS) {
             active_states.erase(res->s);
         }
     }

@@ -23,6 +23,7 @@ enum {
 
 enum game_states { MV_UP, MV_DOWN, MV_LEFT, MV_RIGHT, MV_FORWARD,
     CHANGE_TEXTURE, CHANGE_MODEL, GLOBAL_MODE,
+    SUBMIT_REQUEST,
     NO_DIGIT_PRESSED,
     PRESSED_1,
     PRESSED_2,
@@ -76,6 +77,7 @@ class MoEng : public BaseEng {
 
         void enter_global_mode();
         void enter_global_mode_on_request();
+        void check_digit(int value);
         void read_for_requested_object();
         void render();
         void process_input(SDL_Event *event);
@@ -92,7 +94,8 @@ class MoEng : public BaseEng {
         BoalerVSLink *view_shader_links[NUMBER_OF_SHADERS];
 
         unsigned int object_index_being_requested;
-        unsigned int figures_input;
+        unsigned int frames_since_last_entry;
+        game_states last_digit_pressed;
 
         unsigned int active_object_index;
         MoObject *active_object;

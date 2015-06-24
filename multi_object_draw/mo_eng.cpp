@@ -129,6 +129,8 @@ MoEng::MoEng(
             glm::vec3(0.0, 1.0, 0.0)),
         glm::perspective(44.9f, (float)w / (float)h, 0.1f, 100.0f))),
     object_index_being_requested(0),
+    frames_since_last_entry(0),
+    last_digit_pressed(NO_DIGIT_PRESSED),
     active_object_index(0),
     active_object(NULL)
 {
@@ -144,8 +146,17 @@ MoEng::MoEng(
     custom_ip->add_key_binding(SDLK_m, CHANGE_MODEL);
 
     custom_ip->add_key_binding(SDLK_ESCAPE, GLOBAL_MODE);
-    custom_ip->add_key_binding(SDLK_1, SELECTED_1);
-
+    custom_ip->add_key_binding(SDLK_RETURN, SUBMIT_REQUEST);
+    custom_ip->add_key_binding(SDLK_1, PRESSED_1);
+    custom_ip->add_key_binding(SDLK_2, PRESSED_2);
+    custom_ip->add_key_binding(SDLK_3, PRESSED_3);
+    custom_ip->add_key_binding(SDLK_4, PRESSED_4);
+    custom_ip->add_key_binding(SDLK_5, PRESSED_5);
+    custom_ip->add_key_binding(SDLK_6, PRESSED_6);
+    custom_ip->add_key_binding(SDLK_7, PRESSED_7);
+    custom_ip->add_key_binding(SDLK_8, PRESSED_8);
+    custom_ip->add_key_binding(SDLK_9, PRESSED_9);
+    custom_ip->add_key_binding(SDLK_0, PRESSED_0);
 
     beng.reg_view_unit(&view_unit);
 
@@ -206,39 +217,69 @@ void MoEng::enter_global_mode_on_request()
     }
 }
 
+void MoEng::check_digit(int value)
+{
+    unsigned int update_limit = 0.5f * fps;
+    GenInputProcessor<game_states> *custom_input_processor
+        = static_cast<GenInputProcessor<game_states> *>(input_processor);
+    game_states digits[10] = {
+        PRESSED_0,
+        PRESSED_1,
+        PRESSED_2,
+        PRESSED_3,
+        PRESSED_4,
+        PRESSED_5,
+        PRESSED_6,
+        PRESSED_7,
+        PRESSED_8,
+        PRESSED_9
+    };
+    game_states digit = digits[value];
+
+    if (custom_input_processor->is_state_active(digit)) {
+        if (
+            frames_since_last_entry < update_limit
+            && last_digit_pressed == digit
+        ) {
+            return;
+        }
+        last_digit_pressed = digit;
+        frames_since_last_entry = 0;
+
+        // update requested number
+        object_index_being_requested =
+            object_index_being_requested * 10
+            + value; 
+        std::cout << "Requesting: " << object_index_being_requested
+            << '\n';
+    }
+    return;    
+}
+
 void MoEng::read_for_requested_object()
 {
-    static int frames_since_last_entry = 0;
-    static int frames_since_press = 0;
-    static game_states last_digit_pressed = NO_DIGIT_PRESSED;
-
-    int update_limit = 0.5f * fps;
-    int timeout_limit = 0.8f * fps;
-
     GenInputProcessor<game_states> *custom_input_processor
         = static_cast<GenInputProcessor<game_states> *>(input_processor);
 
     if (custom_input_processor->is_state_active(GLOBAL_MODE)) {
         object_index_being_requested = 0;
-        figures_input = 0;
         last_digit_pressed = NO_DIGIT_PRESSED;
 
         return;
     }
 
-    if (custom_input_processor->is_state_active(PRESSED_1)) {
-        frames_since_press = 0;
-        frames_since_last_entry = 0;
+    frames_since_last_entry += 1;
+    for (int i = 0; i < 10; i++) {
+        check_digit(i);
     }
 
-    if (frames_since_last_entry > timeout_limit) {
-        if (object_index_being_requested == 0) {
-            return;
+    if (custom_input_processor->is_state_active(SUBMIT_REQUEST)) {
+        object_index_being_requested -= 1;
+        if (object_index_being_requested < objects.size()) {
+            set_active_object(object_index_being_requested);
         }
-        
-        set_active_object(object_index_being_requested - 1);
         object_index_being_requested = 0;
-        figures_input = 0;
+        last_digit_pressed = NO_DIGIT_PRESSED;
     }
 }
 

@@ -27,6 +27,9 @@ class MoBillboard {
             const BoalerVSLModelUnitLink &mother_vslm_link,
             int shape_id,
             GLfloat r_bb);
+        void set_to_active();
+        void set_to_rotate();
+        void set_to_normal();
 
         static glm::mat4 V;
         static glm::mat4 P;
@@ -36,10 +39,14 @@ class MoBillboard {
         static BoalerVSLink *vs_link;
 
         static SDL_Surface *bb_bg_img;
+        static SDL_Surface *bb_bg_img_active;
+        static SDL_Surface *bb_bg_img_rotate;
 
         static int bb_w;
         static int bb_h;
         static SDL_Rect txt_rect;
+
+        int shape_id;
 
         TextTexture text_texture;
         BoalerModelUnit model_unit;

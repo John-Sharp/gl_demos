@@ -76,6 +76,18 @@ void MoObject::rotate(glm::vec3 rotation_axis)
         * glm::rotate(glm::mat4(1), 0.1f, rotation_axis);
 }
 
+void MoObject::put_in_rotate_mode()
+{
+    is_in_rotate_mode = true;
+    billboard->set_to_rotate();
+}
+
+void MoObject::put_in_active_mode()
+{
+    is_in_active_mode = true;
+    billboard->set_to_active();
+}
+
 MoObject *MoEng::add_model(unsigned int model_index) {
     unsigned int i;
     for (i = 0; i < NUMBER_OF_MODELS_ALLOWED; i++) {
@@ -98,6 +110,7 @@ void MoEng::set_active_object(unsigned int new_active_object_index)
 {
     active_object_index = new_active_object_index;
     active_object = indexed_objects[active_object_index];
+    active_object->put_in_active_mode();
 }
 
 MoObject *MoEng::add_model_on_request()
@@ -180,6 +193,8 @@ void MoEng::rotate_active_object_on_request()
     if (!custom_input_processor->is_state_active(ROTATE_MODE)) {
         return;
     }
+
+    active_object->put_in_rotate_mode();
 
     if (custom_input_processor->is_state_active(MV_RIGHT)) {
         active_object->rotate(glm::vec3(1.0f, 0.0f, 0.0f));

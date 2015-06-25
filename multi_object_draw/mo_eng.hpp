@@ -48,6 +48,11 @@ class MoObject {
         void change_model_on_request();
         void move(glm::vec3 direction_modelspace);
         void rotate(glm::vec3 rotation_axis);
+        void put_in_rotate_mode();
+        bool is_in_rotate_mode;
+        void put_in_active_mode();
+        bool is_in_active_mode;
+
             
         static MoEng *eng;
         unsigned int object_index;

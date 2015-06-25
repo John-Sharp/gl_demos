@@ -17,6 +17,8 @@ BoalerModel *MoBillboard::model = NULL;
 BoalerVSLink *MoBillboard::vs_link = NULL;
 
 SDL_Surface *MoBillboard::bb_bg_img = NULL;
+SDL_Surface *MoBillboard::bb_bg_img_active = NULL;
+SDL_Surface *MoBillboard::bb_bg_img_rotate = NULL;
 
 int MoBillboard::bb_w = 40;
 int MoBillboard::bb_h = 50;
@@ -42,12 +44,15 @@ void MoBillboard::prep(
             shader_unit);
 
     bb_bg_img = IMG_Load("resources/id_bb_bg.png");
+    bb_bg_img_active = IMG_Load("resources/id_bb_bg_active.png");
+    bb_bg_img_rotate = IMG_Load("resources/id_bb_bg_rotate.png");
 }
 
 MoBillboard::MoBillboard(
     const BoalerVSLModelUnitLink &mother_vslm_link,
     int shape_id,
     GLfloat r_bb) :
+        shape_id(shape_id),
         text_texture(TextTexture(txt_rect, bb_bg_img)),
         model_unit(BoalerModelUnit(
             glm::scale(glm::mat4(1), glm::vec3(bb_w, bb_h, 1.0f)),
@@ -61,3 +66,28 @@ MoBillboard::MoBillboard(
     sprintf(tmp_string, "<span color='white'>%d</span>", shape_id);
     text_texture.set_text(tmp_string);
 }
+
+void MoBillboard::set_to_active()
+{
+    text_texture.bg_img = bb_bg_img_active;
+    char tmp_string[150];
+    sprintf(tmp_string, "<span color='black'>%d</span>", shape_id);
+    text_texture.set_text(tmp_string);
+}
+
+void MoBillboard::set_to_rotate()
+{
+    text_texture.bg_img = bb_bg_img_rotate;
+    char tmp_string[150];
+    sprintf(tmp_string, "<span color='black'>%d</span>", shape_id);
+    text_texture.set_text(tmp_string);
+}
+
+void MoBillboard::set_to_normal()
+{
+    text_texture.bg_img = bb_bg_img;
+    char tmp_string[150];
+    sprintf(tmp_string, "<span color='white'>%d</span>", shape_id);
+    text_texture.set_text(tmp_string);
+}
+

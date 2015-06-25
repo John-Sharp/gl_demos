@@ -50,6 +50,8 @@ template <class states_enum> class GenInputProcessor : public BaseInputProcessor
         void rm_key_binding(SDL_Keycode k, states_enum s, binding_type t);
         void process_input(SDL_Event *event);
         bool is_state_active(states_enum s);
+        void activate_state(states_enum s);
+        void deactivate_state(states_enum s);
 
     private:
         std::set<binding<states_enum> > bindings;
@@ -114,6 +116,18 @@ bool GenInputProcessor<states_enum>::is_state_active(states_enum s)
         return true;
     }
     return false;
+}
+
+template <class states_enum>
+void GenInputProcessor<states_enum>::activate_state(states_enum s)
+{
+    active_states.insert(s);
+}
+
+template <class states_enum>
+void GenInputProcessor<states_enum>::deactivate_state(states_enum s)
+{
+    active_states.erase(s);
 }
 
 #endif

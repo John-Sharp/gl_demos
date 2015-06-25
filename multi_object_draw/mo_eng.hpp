@@ -37,6 +37,12 @@ enum game_states { MV_UP, MV_DOWN, MV_LEFT, MV_RIGHT, MV_FORWARD,
     PRESSED_9,
     PRESSED_0 };
 
+enum object_mode {
+    OBJECT_MODE_INACTIVE,
+    OBJECT_MODE_ACTIVE,
+    OBJECT_MODE_ROTATE
+};
+
 typedef class MoBillboard MoBillboard;
 typedef class MoEng MoEng;
 
@@ -49,10 +55,9 @@ class MoObject {
         void move(glm::vec3 direction_modelspace);
         void rotate(glm::vec3 rotation_axis);
         void put_in_rotate_mode();
-        bool is_in_rotate_mode;
         void put_in_active_mode();
-        bool is_in_active_mode;
-
+        void put_in_normal_mode();
+        object_mode mode;
             
         static MoEng *eng;
         unsigned int object_index;

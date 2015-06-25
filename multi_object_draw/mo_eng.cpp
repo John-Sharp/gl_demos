@@ -78,14 +78,23 @@ void MoObject::rotate(glm::vec3 rotation_axis)
 
 void MoObject::put_in_rotate_mode()
 {
-    is_in_rotate_mode = true;
+    mode = OBJECT_MODE_ROTATE;
     billboard->set_to_rotate();
 }
 
 void MoObject::put_in_active_mode()
 {
-    is_in_active_mode = true;
+    mode = OBJECT_MODE_ACTIVE;
     billboard->set_to_active();
+    GenInputProcessor<game_states> *input_processor
+        = static_cast<GenInputProcessor<game_states> *>(eng->input_processor);
+    input_processor->deactivate_state(ROTATE_MODE);
+}
+
+void MoObject::put_in_normal_mode()
+{
+    mode = OBJECT_MODE_INACTIVE;
+    billboard->set_to_normal();
 }
 
 MoObject *MoEng::add_model(unsigned int model_index) {
@@ -141,7 +150,6 @@ MoObject *MoEng::add_model_on_request()
     return mobj;
 }
 
-
 void MoEng::move_active_object_on_request()
 {
     GenInputProcessor<game_states> *custom_input_processor
@@ -153,6 +161,8 @@ void MoEng::move_active_object_on_request()
     if (custom_input_processor->is_state_active(ROTATE_MODE)) {
         return;
     }
+
+    active_object->put_in_active_mode();
 
     glm::vec3 move_dn(0.0f, 0.0f, 0.0f);
 
@@ -316,6 +326,7 @@ MoEng::MoEng(
 
 void MoEng::enter_global_mode()
 {
+    active_object->put_in_normal_mode();
     active_object = NULL;
     active_object_index = NUMBER_OF_MODELS_ALLOWED + 1;
     object_index_being_requested = 0;

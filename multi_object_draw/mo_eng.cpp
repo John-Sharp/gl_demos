@@ -32,6 +32,13 @@ MoObject::MoObject(unsigned int object_index) :
         eng->model_templates[model_index].r_bb);
 }
 
+MoObject::~MoObject()
+{
+    delete model_unit;
+    delete vslm_link;
+    delete billboard;
+}
+
 void  MoObject::change_model(unsigned int new_model_index)
 {
     model_index = new_model_index;
@@ -89,6 +96,7 @@ void MoObject::put_in_active_mode()
     GenInputProcessor<game_states> *input_processor
         = static_cast<GenInputProcessor<game_states> *>(eng->input_processor);
     input_processor->deactivate_state(ROTATE_MODE);
+    input_processor->deactivate_state(DELETE_OBJECT);
 }
 
 void MoObject::put_in_normal_mode()
@@ -99,9 +107,8 @@ void MoObject::put_in_normal_mode()
 
 MoObject *MoEng::add_model(unsigned int model_index) {
     unsigned int i;
-    for (i = 0; i < NUMBER_OF_MODELS_ALLOWED; i++) {
-        if (!occupied_indices[i]) {    
-            occupied_indices[i] = true;
+    for (i = 0; i < NUMBER_OF_OBJECTS_ALLOWED; i++) {
+        if (!indexed_objects[i]) {    
             break;
         }
     }
@@ -109,7 +116,7 @@ MoObject *MoEng::add_model(unsigned int model_index) {
     MoObject *mobj = new MoObject(i);
     mobj->change_model(model_index);
 
-    number_of_objects += 1;
+    objects.push_back(mobj);
     indexed_objects[i] = mobj;
 
     return mobj;
@@ -117,6 +124,13 @@ MoObject *MoEng::add_model(unsigned int model_index) {
 
 void MoEng::set_active_object(unsigned int new_active_object_index)
 {
+    if (
+        new_active_object_index >= NUMBER_OF_OBJECTS_ALLOWED
+        || !indexed_objects[new_active_object_index]
+    ) {
+        return;
+    } 
+
     active_object_index = new_active_object_index;
     active_object = indexed_objects[active_object_index];
     active_object->put_in_active_mode();
@@ -126,7 +140,7 @@ MoObject *MoEng::add_model_on_request()
 {
     GenInputProcessor<game_states> *custom_input_processor
         = static_cast<GenInputProcessor<game_states> *>(input_processor);
-    MoObject * mobj = NULL;
+    MoObject *mobj = NULL;
 
     if (
         custom_input_processor->is_state_active(CHANGE_MODEL)
@@ -144,9 +158,6 @@ MoObject *MoEng::add_model_on_request()
         glm::affineInverse(view_unit.V)
         * glm::translate(glm::mat4(1), -1.0f * initial_camera_pos);
 
-    glm::mat4 I = view_unit.V * mobj->model_unit->M;
-    I = mobj->model_unit->M;
-
     return mobj;
 }
 
@@ -161,8 +172,6 @@ void MoEng::move_active_object_on_request()
     if (custom_input_processor->is_state_active(ROTATE_MODE)) {
         return;
     }
-
-    active_object->put_in_active_mode();
 
     glm::vec3 move_dn(0.0f, 0.0f, 0.0f);
 
@@ -204,7 +213,7 @@ void MoEng::rotate_active_object_on_request()
         return;
     }
 
-    active_object->put_in_rotate_mode();
+    // active_object->put_in_rotate_mode();
 
     if (custom_input_processor->is_state_active(MV_RIGHT)) {
         active_object->rotate(glm::vec3(1.0f, 0.0f, 0.0f));
@@ -231,6 +240,32 @@ void MoEng::rotate_active_object_on_request()
     }
 }
 
+void MoEng::delete_active_object()
+{
+    MoObject *object_to_be_deleted = active_object;
+    indexed_objects[active_object->object_index] = NULL;
+    objects.erase(
+        std::remove(objects.begin(), objects.end(), active_object),
+        objects.end());
+    enter_global_mode();
+    active_object = NULL;
+    delete object_to_be_deleted;
+}
+
+void MoEng::delete_active_object_on_request()
+{
+    GenInputProcessor<game_states> *custom_input_processor
+        = static_cast<GenInputProcessor<game_states> *>(input_processor);
+
+    if (!custom_input_processor->is_state_active(DELETE_OBJECT)) {
+        return;
+    }
+
+    custom_input_processor->deactivate_state(DELETE_OBJECT);
+
+    delete_active_object();
+}
+
 MoEng::MoEng(
         int w,
         int h,
@@ -252,8 +287,7 @@ MoEng::MoEng(
     frames_since_last_entry(0),
     last_digit_pressed(NO_DIGIT_PRESSED),
     active_object_index(0),
-    active_object(NULL),
-    number_of_objects(0)
+    active_object(NULL)
 {
     GenInputProcessor<game_states> *custom_ip = new GenInputProcessor<game_states>;
     input_processor = static_cast<BaseInputProcessor *>(custom_ip);
@@ -281,6 +315,8 @@ MoEng::MoEng(
     custom_ip->add_key_binding(SDLK_0, PRESSED_0, BINDING_CONTINUOUS);
 
     custom_ip->add_key_binding(SDLK_r, ROTATE_MODE, BINDING_ATOMIC);
+
+    custom_ip->add_key_binding(SDLK_d, DELETE_OBJECT, BINDING_ONE_TIME);
 
     beng.reg_view_unit(&view_unit);
 
@@ -311,24 +347,17 @@ MoEng::MoEng(
     MoBillboard::prep(this, billboard_shader_unit);
     MoObject::prep(this);
 
-    bool temp = false;
-    memcpy(
-        occupied_indices,
-        &temp,
-        NUMBER_OF_MODELS_ALLOWED * sizeof(temp));
-
-    MoObject *temp_mobj = NULL;
-    memcpy(
+    memset(
         indexed_objects,
-        &temp_mobj,
-        NUMBER_OF_MODELS_ALLOWED * sizeof(temp_mobj));
+        0,
+        NUMBER_OF_OBJECTS_ALLOWED * sizeof(indexed_objects[0]));
 }
 
 void MoEng::enter_global_mode()
 {
     active_object->put_in_normal_mode();
     active_object = NULL;
-    active_object_index = NUMBER_OF_MODELS_ALLOWED + 1;
+    active_object_index = NUMBER_OF_OBJECTS_ALLOWED + 1;
     object_index_being_requested = 0;
 }
 
@@ -375,8 +404,6 @@ void MoEng::check_digit(int value)
         object_index_being_requested =
             object_index_being_requested * 10
             + value; 
-        std::cout << "Requesting: " << object_index_being_requested
-            << '\n';
     }
     return;    
 }
@@ -400,11 +427,7 @@ void MoEng::read_for_requested_object()
 
     if (custom_input_processor->is_state_active(SUBMIT_REQUEST)) {
         object_index_being_requested -= 1;
-        std::cout << "Requested index " << object_index_being_requested << '\n';
-        if (object_index_being_requested < number_of_objects) {
-            std::cout << "here, setting active object " << object_index_being_requested << '\n';
-            set_active_object(object_index_being_requested);
-        }
+        set_active_object(object_index_being_requested);
         object_index_being_requested = 0;
         last_digit_pressed = NO_DIGIT_PRESSED;
     }
@@ -412,8 +435,12 @@ void MoEng::read_for_requested_object()
 
 void MoEng::render()
 {
-    for (unsigned int i = 0; i < number_of_objects; i++ ) {
-        indexed_objects[i]->billboard->bb.update_pos();
+    for (
+        std::vector<MoObject *>::iterator it = objects.begin();
+        it != objects.end();
+        ++it
+    ) {
+        (*it)->billboard->bb.update_pos();
     }
 
     read_for_requested_object();
@@ -421,6 +448,7 @@ void MoEng::render()
         enter_global_mode_on_request();
         active_object->change_model_on_request();
         move_active_object_on_request();
+        delete_active_object_on_request();
         rotate_active_object_on_request();
     } else {
         add_model_on_request();

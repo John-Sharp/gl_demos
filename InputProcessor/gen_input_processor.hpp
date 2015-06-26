@@ -9,8 +9,12 @@ enum binding_type {
     BINDING_ATOMIC,      // press button to turn state on,
                          // press again to switch off
 
-    BINDING_CONTINUOUS   // press button and state turns on,
+    BINDING_CONTINUOUS,  // press button and state turns on,
                          // release and state turns off
+
+    BINDING_ONE_TIME     // press button and state turns on,
+                         // state must then be turned off
+                         // manually
 };
 template <class states_enum>
 class binding {

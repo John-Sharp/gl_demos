@@ -13,7 +13,7 @@
 enum {
     NUMBER_OF_BASE_MODELS = 2,
     NUMBER_OF_SHADERS = 1,
-    NUMBER_OF_MODELS_ALLOWED = 9
+    NUMBER_OF_OBJECTS_ALLOWED = 9
 };
 
 enum {
@@ -24,6 +24,7 @@ enum {
 enum game_states { MV_UP, MV_DOWN, MV_LEFT, MV_RIGHT, MV_FORWARD,
     MV_BACKWARD,
     CHANGE_TEXTURE, CHANGE_MODEL, GLOBAL_MODE, ROTATE_MODE,
+    DELETE_OBJECT,
     SUBMIT_REQUEST,
     NO_DIGIT_PRESSED,
     PRESSED_1,
@@ -49,6 +50,7 @@ typedef class MoEng MoEng;
 class MoObject {
     public:
         MoObject(unsigned int object_index);
+        ~MoObject();
         static void prep(MoEng *eng);
         void change_model(unsigned int new_model_index);
         void change_model_on_request();
@@ -100,6 +102,8 @@ class MoEng : public BaseEng {
         MoObject *add_model_on_request();
         void move_active_object_on_request();
         void rotate_active_object_on_request();
+        void delete_active_object();
+        void delete_active_object_on_request();
 
         BoalerEng beng;
         BoalerShaderUnit billboard_shader_unit;
@@ -114,9 +118,8 @@ class MoEng : public BaseEng {
 
         unsigned int active_object_index;
         MoObject *active_object;
-        unsigned int number_of_objects;
-        MoObject *indexed_objects[NUMBER_OF_MODELS_ALLOWED];
-        bool occupied_indices[NUMBER_OF_MODELS_ALLOWED];
+        std::vector<MoObject *> objects;
+        MoObject *indexed_objects[NUMBER_OF_OBJECTS_ALLOWED];
 };
 
 #endif

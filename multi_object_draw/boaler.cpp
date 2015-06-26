@@ -1,6 +1,7 @@
 #include "boaler.hpp"
 #include "../simple_obj_reader/bin_obj_reader.hpp"
 #include <stdio.h>
+#include <algorithm>
 
 typedef class BoalerVSLink BoalerVSLink;
 
@@ -71,6 +72,13 @@ BoalerVSLModelUnitLink::BoalerVSLModelUnitLink(
     glGenVertexArrays(1, &vao);
 
     update_model_unit(model_unit);
+}
+
+BoalerVSLModelUnitLink::~BoalerVSLModelUnitLink()
+{
+    std::vector<BoalerVSLModelUnitLink *> &vec =
+        vs_link->model_unit_links;
+    vec.erase(std::remove(vec.begin(), vec.end(), this), vec.end());
 }
 
 void BoalerVSLModelUnitLink::update_model_unit(
@@ -211,6 +219,8 @@ BoalerVSLink::BoalerVSLink(
 {
     view_unit.shader_links.push_back(this);
 }
+
+BoalerVSLink::~BoalerVSLink() {}
 
 void BoalerVSLink::shader_unit_linker()
 {

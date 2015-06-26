@@ -120,6 +120,7 @@ class BoalerVSLink
         BoalerVSLink(
             BoalerViewUnit &view_unit,
             BoalerShaderUnit &shader_unit);
+        virtual ~BoalerVSLink();
 
         // References to the link's view and shader units
         BoalerViewUnit *view_unit;
@@ -139,6 +140,7 @@ class BoalerVSLModelUnitLink
         BoalerVSLModelUnitLink(
             BoalerVSLink &vs_link,
             BoalerModelUnit &model_unit);
+        virtual ~BoalerVSLModelUnitLink();
         void update_model_unit(BoalerModelUnit &model_unit);
 
         // Pointers to the linked VS link and model unit

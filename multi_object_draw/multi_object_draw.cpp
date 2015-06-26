@@ -91,8 +91,6 @@ int main()
 
     bool carry_on = true;
 
-    engine.add_model(BASE_MODEL_TRIANGLE);
-
     FpCamera camera(
         engine,
         0.8,

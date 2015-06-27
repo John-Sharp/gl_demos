@@ -97,19 +97,21 @@ void GenInputProcessor<states_enum>::process_input(SDL_Event *event)
 {
     SDL_Keycode key = event->key.keysym.sym;
 
-    typename std::set<binding<states_enum> >::iterator res = \
+    typename std::set<binding<states_enum> >::iterator res =
         std::find(bindings.begin(), bindings.end(), key);
 
-    if (res != bindings.end()) {
+    while (res != bindings.end() && res->k == key) {
         if (event->key.type == SDL_KEYDOWN) {
             if (res->t == BINDING_ATOMIC && is_state_active(res->s)) {
                 active_states.erase(res->s);
-                return;
+                res++;
+                continue;
             }
             active_states.insert(res->s);
-        } else if (res->t == BINDING_CONTINUOUS) {
+        } else if (event->key.type == SDL_KEYUP && res->t == BINDING_CONTINUOUS) {
             active_states.erase(res->s);
         }
+        res++;
     }
 }
 

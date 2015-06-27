@@ -43,27 +43,10 @@ void  MoObject::change_model(unsigned int new_model_index)
 {
     model_index = new_model_index;
     model_unit->model = eng->model_templates[new_model_index].model;
+    texture_index =
+        eng->model_templates[new_model_index].textures[0];
     billboard->bb.mother_radius = eng->model_templates[new_model_index].r_bb;
     vslm_link->update_model_unit(*model_unit);
-}
-
-void MoObject::change_model_on_request()
-{
-    GenInputProcessor<game_states> *input_processor
-        = static_cast<GenInputProcessor<game_states> *>(eng->input_processor);
-    static bool model_should_change = true;
-
-    if (input_processor->is_state_active(CHANGE_MODEL) && model_should_change) {
-        unsigned int new_model_index = (model_index + 1) % NUMBER_OF_BASE_MODELS; 
-        change_model(new_model_index);
-
-        model_should_change = false;
-        return;
-    }
-
-    if (!input_processor->is_state_active(CHANGE_MODEL)) {
-        model_should_change = true;
-    }
 }
 
 void MoObject::move(glm::vec3 direction_modelspace)
@@ -93,10 +76,7 @@ void MoObject::put_in_active_mode()
 {
     mode = OBJECT_MODE_ACTIVE;
     billboard->set_to_active();
-    GenInputProcessor<game_states> *input_processor
-        = static_cast<GenInputProcessor<game_states> *>(eng->input_processor);
-    input_processor->deactivate_state(ROTATE_MODE);
-    input_processor->deactivate_state(DELETE_OBJECT);
+    eng->input_processor->deactivate_state(DELETE_OBJECT);
 }
 
 void MoObject::put_in_normal_mode()
@@ -105,7 +85,7 @@ void MoObject::put_in_normal_mode()
     billboard->set_to_normal();
 }
 
-MoObject *MoEng::add_model(unsigned int model_index) {
+MoObject *MoEng::add_object(unsigned int model_index) {
     unsigned int i;
     for (i = 0; i < NUMBER_OF_OBJECTS_ALLOWED; i++) {
         if (!indexed_objects[i]) {    
@@ -118,6 +98,11 @@ MoObject *MoEng::add_model(unsigned int model_index) {
 
     objects.push_back(mobj);
     indexed_objects[i] = mobj;
+
+    set_active_object(mobj->object_index);
+    mobj->model_unit->M =
+        glm::affineInverse(view_unit.V)
+        * glm::translate(glm::mat4(1), -1.0f * initial_camera_pos);
 
     return mobj;
 }
@@ -134,68 +119,40 @@ void MoEng::set_active_object(unsigned int new_active_object_index)
     active_object_index = new_active_object_index;
     active_object = indexed_objects[active_object_index];
     active_object->put_in_active_mode();
-}
 
-MoObject *MoEng::add_model_on_request()
-{
-    GenInputProcessor<game_states> *custom_input_processor
-        = static_cast<GenInputProcessor<game_states> *>(input_processor);
-    MoObject *mobj = NULL;
-
-    if (
-        custom_input_processor->is_state_active(CHANGE_MODEL)
-        && active_object == NULL
-    ) {
-        mobj = add_model(BASE_MODEL_TRIANGLE);
-    }
-
-    if (!mobj) {
-        return NULL;
-    }
-
-    set_active_object(mobj->object_index);
-    mobj->model_unit->M =
-        glm::affineInverse(view_unit.V)
-        * glm::translate(glm::mat4(1), -1.0f * initial_camera_pos);
-
-    return mobj;
+    input_processor->deactivate_state(ROTATE_MODE);
+    input_processor->deactivate_state(DELETE_OBJECT);
 }
 
 void MoEng::move_active_object_on_request()
 {
-    GenInputProcessor<game_states> *custom_input_processor
-        = static_cast<GenInputProcessor<game_states> *>(input_processor);
     if (!active_object) {
-        return;
-    }
-
-    if (custom_input_processor->is_state_active(ROTATE_MODE)) {
         return;
     }
 
     glm::vec3 move_dn(0.0f, 0.0f, 0.0f);
 
-    if (custom_input_processor->is_state_active(MV_RIGHT)) {
+    if (input_processor->is_state_active(MV_RIGHT)) {
         move_dn += glm::vec3(1.0f, 0.0f, 0.0f);
     }
 
-    if (custom_input_processor->is_state_active(MV_LEFT)) {
+    if (input_processor->is_state_active(MV_LEFT)) {
         move_dn += glm::vec3(-1.0f, 0.0f, 0.0f);
     }
 
-    if (custom_input_processor->is_state_active(MV_UP)) {
+    if (input_processor->is_state_active(MV_UP)) {
         move_dn += glm::vec3(0.0f, 1.0f, 0.0f);
     }
 
-    if (custom_input_processor->is_state_active(MV_DOWN)) {
+    if (input_processor->is_state_active(MV_DOWN)) {
         move_dn += glm::vec3(0.0f, -1.0f, 0.0f);
     }
 
-    if (custom_input_processor->is_state_active(MV_FORWARD)) {
+    if (input_processor->is_state_active(MV_FORWARD)) {
         move_dn += glm::vec3(0.0f, 0.0f, 1.0f);
     }
 
-    if (custom_input_processor->is_state_active(MV_BACKWARD)) {
+    if (input_processor->is_state_active(MV_BACKWARD)) {
         move_dn += glm::vec3(0.0f, 0.0f, -1.0f);
     }
     active_object->move(move_dn);
@@ -203,39 +160,31 @@ void MoEng::move_active_object_on_request()
 
 void MoEng::rotate_active_object_on_request()
 {
-    GenInputProcessor<game_states> *custom_input_processor
-        = static_cast<GenInputProcessor<game_states> *>(input_processor);
     if (!active_object) {
         return;
     }
 
-    if (!custom_input_processor->is_state_active(ROTATE_MODE)) {
-        return;
-    }
-
-    // active_object->put_in_rotate_mode();
-
-    if (custom_input_processor->is_state_active(MV_RIGHT)) {
+    if (input_processor->is_state_active(MV_RIGHT)) {
         active_object->rotate(glm::vec3(1.0f, 0.0f, 0.0f));
     }
 
-    if (custom_input_processor->is_state_active(MV_LEFT)) {
+    if (input_processor->is_state_active(MV_LEFT)) {
         active_object->rotate(glm::vec3(-1.0f, 0.0f, 0.0f));
     }
 
-    if (custom_input_processor->is_state_active(MV_UP)) {
+    if (input_processor->is_state_active(MV_UP)) {
         active_object->rotate(glm::vec3(0.0f, 1.0f, 0.0f));
     }
 
-    if (custom_input_processor->is_state_active(MV_DOWN)) {
+    if (input_processor->is_state_active(MV_DOWN)) {
         active_object->rotate(glm::vec3(0.0f, -1.0f, 0.0f));
     }
 
-    if (custom_input_processor->is_state_active(MV_FORWARD)) {
+    if (input_processor->is_state_active(MV_FORWARD)) {
         active_object->rotate(glm::vec3(0.0f, 0.0f, 1.0f));
     }
 
-    if (custom_input_processor->is_state_active(MV_BACKWARD)) {
+    if (input_processor->is_state_active(MV_BACKWARD)) {
         active_object->rotate(glm::vec3(0.0f, 0.0f, -1.0f));
     }
 }
@@ -252,18 +201,57 @@ void MoEng::delete_active_object()
     delete object_to_be_deleted;
 }
 
-void MoEng::delete_active_object_on_request()
+void MoEng::change_active_object_model()
 {
-    GenInputProcessor<game_states> *custom_input_processor
-        = static_cast<GenInputProcessor<game_states> *>(input_processor);
+    unsigned int new_model_index = (active_object->model_index + 1)
+        % NUMBER_OF_BASE_MODELS;
+    active_object->change_model(new_model_index);
+}
 
-    if (!custom_input_processor->is_state_active(DELETE_OBJECT)) {
-        return;
+void MoEng::do_logic()
+{
+    if (active_object) {
+
+        if (input_processor->is_state_active(ROTATE_MODE_SWITCH)) {
+            input_processor->deactivate_state(ROTATE_MODE_SWITCH);
+            if (input_processor->is_state_active(ROTATE_MODE)) {
+                std::cout << "switching rotate mode on\n";
+                active_object->put_in_rotate_mode();
+            } else {
+                std::cout << "switching rotate mode off\n";
+                active_object->put_in_active_mode();
+            }
+        }
+
+        if (input_processor->is_state_active(DELETE_OBJECT)) {
+            input_processor->deactivate_state(DELETE_OBJECT);
+            delete_active_object();
+        }
+
+        if (input_processor->is_state_active(GLOBAL_MODE_SWITCH)) {
+            input_processor->deactivate_state(GLOBAL_MODE_SWITCH);
+            enter_global_mode();
+        }
+
+        if (input_processor->is_state_active(CHANGE_MODEL)) {
+            input_processor->deactivate_state(CHANGE_MODEL);
+            change_active_object_model();
+        }
+
+        if (input_processor->is_state_active(ROTATE_MODE)) {
+            rotate_active_object_on_request();
+        } else { // just in normal move mode
+            move_active_object_on_request();
+        }
+    } else { // in global mode
+        if (input_processor->is_state_active(CHANGE_MODEL)) {
+            input_processor->deactivate_state(CHANGE_MODEL);
+            add_object(BASE_MODEL_TRIANGLE);
+        }
     }
 
-    custom_input_processor->deactivate_state(DELETE_OBJECT);
+    read_for_requested_object();
 
-    delete_active_object();
 }
 
 MoEng::MoEng(
@@ -289,34 +277,35 @@ MoEng::MoEng(
     active_object_index(0),
     active_object(NULL)
 {
-    GenInputProcessor<game_states> *custom_ip = new GenInputProcessor<game_states>;
-    input_processor = static_cast<BaseInputProcessor *>(custom_ip);
+    input_processor = new GenInputProcessor<game_states>;
+    base_input_processor = static_cast<BaseInputProcessor *>(input_processor);
 
-    custom_ip->add_key_binding(SDLK_UP, MV_UP, BINDING_CONTINUOUS);
-    custom_ip->add_key_binding(SDLK_DOWN, MV_DOWN, BINDING_CONTINUOUS);
-    custom_ip->add_key_binding(SDLK_LEFT, MV_LEFT, BINDING_CONTINUOUS);
-    custom_ip->add_key_binding(SDLK_RIGHT, MV_RIGHT, BINDING_CONTINUOUS);
-    custom_ip->add_key_binding(SDLK_a, MV_FORWARD, BINDING_CONTINUOUS);
-    custom_ip->add_key_binding(SDLK_s, MV_BACKWARD, BINDING_CONTINUOUS);
-    custom_ip->add_key_binding(SDLK_n, CHANGE_TEXTURE, BINDING_CONTINUOUS);
-    custom_ip->add_key_binding(SDLK_m, CHANGE_MODEL, BINDING_CONTINUOUS);
+    input_processor->add_key_binding(SDLK_UP, MV_UP, BINDING_CONTINUOUS);
+    input_processor->add_key_binding(SDLK_DOWN, MV_DOWN, BINDING_CONTINUOUS);
+    input_processor->add_key_binding(SDLK_LEFT, MV_LEFT, BINDING_CONTINUOUS);
+    input_processor->add_key_binding(SDLK_RIGHT, MV_RIGHT, BINDING_CONTINUOUS);
+    input_processor->add_key_binding(SDLK_a, MV_FORWARD, BINDING_CONTINUOUS);
+    input_processor->add_key_binding(SDLK_s, MV_BACKWARD, BINDING_CONTINUOUS);
+    input_processor->add_key_binding(SDLK_n, CHANGE_TEXTURE, BINDING_CONTINUOUS);
 
-    custom_ip->add_key_binding(SDLK_ESCAPE, GLOBAL_MODE, BINDING_CONTINUOUS);
-    custom_ip->add_key_binding(SDLK_RETURN, SUBMIT_REQUEST, BINDING_CONTINUOUS);
-    custom_ip->add_key_binding(SDLK_1, PRESSED_1, BINDING_CONTINUOUS);
-    custom_ip->add_key_binding(SDLK_2, PRESSED_2, BINDING_CONTINUOUS);
-    custom_ip->add_key_binding(SDLK_3, PRESSED_3, BINDING_CONTINUOUS);
-    custom_ip->add_key_binding(SDLK_4, PRESSED_4, BINDING_CONTINUOUS);
-    custom_ip->add_key_binding(SDLK_5, PRESSED_5, BINDING_CONTINUOUS);
-    custom_ip->add_key_binding(SDLK_6, PRESSED_6, BINDING_CONTINUOUS);
-    custom_ip->add_key_binding(SDLK_7, PRESSED_7, BINDING_CONTINUOUS);
-    custom_ip->add_key_binding(SDLK_8, PRESSED_8, BINDING_CONTINUOUS);
-    custom_ip->add_key_binding(SDLK_9, PRESSED_9, BINDING_CONTINUOUS);
-    custom_ip->add_key_binding(SDLK_0, PRESSED_0, BINDING_CONTINUOUS);
+    input_processor->add_key_binding(SDLK_1, PRESSED_1, BINDING_CONTINUOUS);
+    input_processor->add_key_binding(SDLK_2, PRESSED_2, BINDING_CONTINUOUS);
+    input_processor->add_key_binding(SDLK_3, PRESSED_3, BINDING_CONTINUOUS);
+    input_processor->add_key_binding(SDLK_4, PRESSED_4, BINDING_CONTINUOUS);
+    input_processor->add_key_binding(SDLK_5, PRESSED_5, BINDING_CONTINUOUS);
+    input_processor->add_key_binding(SDLK_6, PRESSED_6, BINDING_CONTINUOUS);
+    input_processor->add_key_binding(SDLK_7, PRESSED_7, BINDING_CONTINUOUS);
+    input_processor->add_key_binding(SDLK_8, PRESSED_8, BINDING_CONTINUOUS);
+    input_processor->add_key_binding(SDLK_9, PRESSED_9, BINDING_CONTINUOUS);
+    input_processor->add_key_binding(SDLK_0, PRESSED_0, BINDING_CONTINUOUS);
 
-    custom_ip->add_key_binding(SDLK_r, ROTATE_MODE, BINDING_ATOMIC);
+    input_processor->add_key_binding(SDLK_r, ROTATE_MODE_SWITCH, BINDING_ONE_TIME);
+    input_processor->add_key_binding(SDLK_r, ROTATE_MODE, BINDING_ATOMIC);
 
-    custom_ip->add_key_binding(SDLK_d, DELETE_OBJECT, BINDING_ONE_TIME);
+    input_processor->add_key_binding(SDLK_d, DELETE_OBJECT, BINDING_ONE_TIME);
+    input_processor->add_key_binding(SDLK_ESCAPE, GLOBAL_MODE_SWITCH, BINDING_ONE_TIME);
+    input_processor->add_key_binding(SDLK_m, CHANGE_MODEL, BINDING_ONE_TIME);
+    input_processor->add_key_binding(SDLK_RETURN, SUBMIT_REQUEST, BINDING_ONE_TIME);
 
     beng.reg_view_unit(&view_unit);
 
@@ -355,27 +344,17 @@ MoEng::MoEng(
 
 void MoEng::enter_global_mode()
 {
+    if (!active_object) {
+        return;
+    }
     active_object->put_in_normal_mode();
     active_object = NULL;
     active_object_index = NUMBER_OF_OBJECTS_ALLOWED + 1;
-    object_index_being_requested = 0;
-}
-
-void MoEng::enter_global_mode_on_request()
-{
-    GenInputProcessor<game_states> *custom_input_processor
-        = static_cast<GenInputProcessor<game_states> *>(input_processor);
-
-    if (custom_input_processor->is_state_active(GLOBAL_MODE)) {
-        enter_global_mode();
-    }
 }
 
 void MoEng::check_digit(int value)
 {
     unsigned int update_limit = 0.5f * fps;
-    GenInputProcessor<game_states> *custom_input_processor
-        = static_cast<GenInputProcessor<game_states> *>(input_processor);
     game_states digits[10] = {
         PRESSED_0,
         PRESSED_1,
@@ -390,7 +369,7 @@ void MoEng::check_digit(int value)
     };
     game_states digit = digits[value];
 
-    if (custom_input_processor->is_state_active(digit)) {
+    if (input_processor->is_state_active(digit)) {
         if (
             frames_since_last_entry < update_limit
             && last_digit_pressed == digit
@@ -410,23 +389,16 @@ void MoEng::check_digit(int value)
 
 void MoEng::read_for_requested_object()
 {
-    GenInputProcessor<game_states> *custom_input_processor
-        = static_cast<GenInputProcessor<game_states> *>(input_processor);
-
-    if (custom_input_processor->is_state_active(GLOBAL_MODE)) {
-        object_index_being_requested = 0;
-        last_digit_pressed = NO_DIGIT_PRESSED;
-
-        return;
-    }
 
     frames_since_last_entry += 1;
     for (int i = 0; i < 10; i++) {
         check_digit(i);
     }
 
-    if (custom_input_processor->is_state_active(SUBMIT_REQUEST)) {
+    if (input_processor->is_state_active(SUBMIT_REQUEST)) {
+        input_processor->deactivate_state(SUBMIT_REQUEST);
         object_index_being_requested -= 1;
+        enter_global_mode();
         set_active_object(object_index_being_requested);
         object_index_being_requested = 0;
         last_digit_pressed = NO_DIGIT_PRESSED;
@@ -443,23 +415,10 @@ void MoEng::render()
         (*it)->billboard->bb.update_pos();
     }
 
-    read_for_requested_object();
-    if (active_object) {
-        enter_global_mode_on_request();
-        active_object->change_model_on_request();
-        move_active_object_on_request();
-        delete_active_object_on_request();
-        rotate_active_object_on_request();
-    } else {
-        add_model_on_request();
-    }
-
     beng.render();
 }
 
 void MoEng::process_input(SDL_Event *event)
 {
-    GenInputProcessor<game_states> *custom_input_processor
-        = static_cast<GenInputProcessor<game_states> *>(input_processor);
-    custom_input_processor->process_input(event);
+    input_processor->process_input(event);
 }

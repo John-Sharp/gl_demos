@@ -24,7 +24,7 @@ class BaseEng
 
         bool should_continue_logic_loops();
 
-        BaseInputProcessor *input_processor;
+        BaseInputProcessor *base_input_processor;
 
         BaseEng(
             int w,

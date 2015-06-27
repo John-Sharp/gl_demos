@@ -41,7 +41,7 @@ BaseEng::BaseEng(
         fps(fps),
         current_frame(0),
         frames_last_render_loop(0),
-        input_processor(input_processor),
+        base_input_processor(input_processor),
         should_start_logic_loop(true),
         whole_frames_to_do(0),
         start_time(0)

@@ -28,7 +28,7 @@ enum { WIN_W = 800, WIN_H = 600, FPS = 100 };
 unsigned int direction_fn(const BaseEng &eng)
 {
     unsigned int direction = CAM_MV_NONE;
-    GenInputProcessor<game_states> *input_processor = static_cast<GenInputProcessor<game_states> *>(eng.input_processor);
+    GenInputProcessor<game_states> *input_processor = static_cast<GenInputProcessor<game_states> *>(eng.base_input_processor);
 
     const MoEng &mo_eng = static_cast<const MoEng &>(eng);
 
@@ -61,7 +61,7 @@ struct texture_struct {
 
 void change_texture(const BaseEng &eng, BoalerModelUnit &mu, const texture_struct *ts)
 {
-    GenInputProcessor<game_states> *input_processor = static_cast<GenInputProcessor<game_states> *>(eng.input_processor);
+    GenInputProcessor<game_states> *input_processor = static_cast<GenInputProcessor<game_states> *>(eng.base_input_processor);
 
     static bool texture_should_change = true;
     static unsigned int i = 0;
@@ -104,6 +104,7 @@ int main()
         // Work through all elapsed logic frames 
         while (engine.should_continue_logic_loops()) {
             camera.compute_direction();
+            engine.do_logic();
         }
 
         engine.view_unit.V = camera.get_V();

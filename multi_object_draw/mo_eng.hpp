@@ -23,8 +23,10 @@ enum {
 
 enum game_states { MV_UP, MV_DOWN, MV_LEFT, MV_RIGHT, MV_FORWARD,
     MV_BACKWARD,
-    CHANGE_TEXTURE, CHANGE_MODEL, GLOBAL_MODE, ROTATE_MODE,
+    CHANGE_TEXTURE, CHANGE_MODEL, GLOBAL_MODE,
+    ROTATE_MODE_SWITCH, ROTATE_MODE,
     DELETE_OBJECT,
+    GLOBAL_MODE_SWITCH,
     SUBMIT_REQUEST,
     NO_DIGIT_PRESSED,
     PRESSED_1,
@@ -53,7 +55,6 @@ class MoObject {
         ~MoObject();
         static void prep(MoEng *eng);
         void change_model(unsigned int new_model_index);
-        void change_model_on_request();
         void move(glm::vec3 direction_modelspace);
         void rotate(glm::vec3 rotation_axis);
         void put_in_rotate_mode();
@@ -91,19 +92,21 @@ class MoEng : public BaseEng {
         glm::vec3 initial_camera_pos;
 
         void enter_global_mode();
-        void enter_global_mode_on_request();
         void check_digit(int value);
         void read_for_requested_object();
         void render();
         void process_input(SDL_Event *event);
-        MoObject *add_model(unsigned int model_index);
+        MoObject *add_object(unsigned int model_index);
         void set_active_object(
             unsigned int new_active_object_index);
-        MoObject *add_model_on_request();
         void move_active_object_on_request();
         void rotate_active_object_on_request();
         void delete_active_object();
-        void delete_active_object_on_request();
+        void change_active_object_model();
+
+        void do_logic();
+
+        GenInputProcessor<game_states> *input_processor;
 
         BoalerEng beng;
         BoalerShaderUnit billboard_shader_unit;

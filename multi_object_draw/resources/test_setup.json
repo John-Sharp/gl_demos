@@ -1,0 +1,15 @@
+{ 
+    "texture_lib" : { "red" : "test_texture.png" },
+    "models" : [
+        {
+            "object_file" : "../triangle.bin",
+            "radius_bb" : 0.8,
+            "textures" : ["red"]
+        },
+        {
+            "object_file" : "../rectangle.bin",
+            "radius_bb" : 1.0,
+            "textures" : ["red"]
+        }
+    ]
+}

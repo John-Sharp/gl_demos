@@ -81,45 +81,52 @@ void change_texture(const BaseEng &eng, BoalerModelUnit &mu, const texture_struc
 
 int main()
 {
-    SDL_Event event;
+    try {
+        SDL_Event event;
 
-    MoEng engine(
-        WIN_W,
-        WIN_H,
-        "Multi object draw",
-        FPS);
+        MoEng engine(
+                "resources/test_setup.json",
+                WIN_W,
+                WIN_H,
+                "Multi object draw",
+                FPS);
 
-    bool carry_on = true;
 
-    FpCamera camera(
-        engine,
-        0.8,
-        0.5,
-        engine.initial_camera_pos,
-        direction_fn);
+        bool carry_on = true;
 
-    glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
-    while(carry_on) {
+        FpCamera camera(
+                engine,
+                0.8,
+                0.5,
+                engine.initial_camera_pos,
+                direction_fn);
 
-        // Work through all elapsed logic frames 
-        while (engine.should_continue_logic_loops()) {
-            camera.compute_direction();
-            engine.do_logic();
-        }
+        glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
+        while(carry_on) {
 
-        engine.view_unit.V = camera.get_V();
-
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-        engine.render();
-
-        SDL_GL_SwapWindow(engine.window);
-
-        while (SDL_PollEvent(&event)) {
-            if (event.type == SDL_QUIT) {
-                carry_on = false;
+            // Work through all elapsed logic frames 
+            while (engine.should_continue_logic_loops()) {
+                camera.compute_direction();
+                engine.do_logic();
             }
-            engine.process_input(&event);
+
+            engine.view_unit.V = camera.get_V();
+
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+            engine.render();
+
+            SDL_GL_SwapWindow(engine.window);
+
+            while (SDL_PollEvent(&event)) {
+                if (event.type == SDL_QUIT) {
+                    carry_on = false;
+                }
+                engine.process_input(&event);
+            }
         }
+    } catch (const MoEngReturnException& e)
+    {
+        return EXIT_FAILURE;
     }
 }

@@ -1,6 +1,6 @@
 CC = g++
 
-CFLAGS = -pg -g -Wall -lGL -lGLEW -lSDL2 -lSDL2_image -lm `pkg-config --cflags --libs pangocairo` 
+CFLAGS = -pg -g -Wall -lGL -lGLEW -lSDL2 -lSDL2_image -lm -ljson-c `pkg-config --cflags --libs pangocairo` 
 
 all: multi_object_draw.cpp boaler.cpp \
 	boaler.hpp \

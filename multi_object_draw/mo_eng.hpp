@@ -9,6 +9,12 @@
 #define GLM_FORCE_RADIANS
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_inverse.hpp>
+#include <json-c/json.h>
+
+#include <exception>
+
+struct MoEngReturnException : public std::exception
+{};
 
 enum {
     NUMBER_OF_BASE_MODELS = 2,
@@ -84,12 +90,21 @@ class MoEng : public BaseEng {
     public:
 
         MoEng(
+            const char *setup_file_path,
             int w,
             int h,
             const char *window_title,
             unsigned int fps);
 
         glm::vec3 initial_camera_pos;
+
+        void create_key_bindings();
+
+        int load_textures_for_model_template(
+            mo_model_template *mo_template,
+            json_object *texture_lib,
+            json_object *textures_j);
+        int setup_with_file(const char*setup_file_path);
 
         void enter_global_mode();
         void check_digit(int value);

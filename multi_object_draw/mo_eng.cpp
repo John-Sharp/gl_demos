@@ -3,6 +3,7 @@
 #include "../utils/utils.hpp"
 #include <string.h>
 #include <iostream>
+#include <libgen.h>
 
 MoEng *MoObject::eng = NULL;
 void MoObject::prep(MoEng *objects_eng)
@@ -254,32 +255,8 @@ void MoEng::do_logic()
 
 }
 
-MoEng::MoEng(
-        int w,
-        int h,
-        const char *window_title,
-        unsigned int fps) : 
-    BaseEng(w, h, window_title, fps, NULL),
-    initial_camera_pos(glm::vec3(0.0f, 0.0f, 4.0f)),
-    beng(BoalerEng()),
-    billboard_shader_unit(compile_shader(
-        "resources/basic_shading.vertexshader",
-        "resources/basic_shading.fragmentshader")),
-    view_unit(BoalerViewUnit(
-        glm::lookAt(
-            glm::vec3(0.0, 0.0, -1.0),
-            glm::vec3(0.0, 0.3, 0.0),
-            glm::vec3(0.0, 1.0, 0.0)),
-        glm::perspective(44.9f, (float)w / (float)h, 0.1f, 100.0f))),
-    object_index_being_requested(0),
-    frames_since_last_entry(0),
-    last_digit_pressed(NO_DIGIT_PRESSED),
-    active_object_index(0),
-    active_object(NULL)
+void MoEng::create_key_bindings()
 {
-    input_processor = new GenInputProcessor<game_states>;
-    base_input_processor = static_cast<BaseInputProcessor *>(input_processor);
-
     input_processor->add_key_binding(SDLK_UP, MV_UP, BINDING_CONTINUOUS);
     input_processor->add_key_binding(SDLK_DOWN, MV_DOWN, BINDING_CONTINUOUS);
     input_processor->add_key_binding(SDLK_LEFT, MV_LEFT, BINDING_CONTINUOUS);
@@ -306,21 +283,177 @@ MoEng::MoEng(
     input_processor->add_key_binding(SDLK_ESCAPE, GLOBAL_MODE_SWITCH, BINDING_ONE_TIME);
     input_processor->add_key_binding(SDLK_m, CHANGE_MODEL, BINDING_ONE_TIME);
     input_processor->add_key_binding(SDLK_RETURN, SUBMIT_REQUEST, BINDING_ONE_TIME);
+}
+
+int MoEng::load_textures_for_model_template(
+        mo_model_template *mo_template,
+        json_object *texture_lib,
+        json_object *textures_j)
+{
+    unsigned int num_textures = json_object_array_length(textures_j);
+
+    for (unsigned int i = 0; i < num_textures; i++) {
+        json_object *t_name_j =
+            json_object_array_get_idx(textures_j, i);
+        const char *t_name = json_object_get_string(t_name_j);
+
+        json_object *t_id_j;
+        if (!json_object_object_get_ex(texture_lib,
+                    t_name, &t_id_j)) {
+            fprintf(stderr,
+                    "ERROR! No texture with name %s\n", t_name);
+            return -1;
+        }
+
+        GLuint t_id = (GLuint)json_object_get_int64(t_id_j);
+        mo_template->textures.push_back(t_id);
+    }
+    return 0;
+}
+
+int MoEng::setup_with_file(const char *setup_file_path)
+{
+    FILE *fp = fopen(setup_file_path, "r");
+    fseek(fp, 0, SEEK_END);
+    long fsize = ftell(fp);
+    fseek(fp, 0, SEEK_SET);
+
+    char *setup_contents = new char[fsize + 1];
+    fread(setup_contents, fsize, 1, fp);
+    fclose(fp);
+    setup_contents[fsize] = 0;
+    json_object *jobj = json_tokener_parse(setup_contents);
+    delete setup_contents;
+
+    char *setup_file_path_cp = new char[strlen(setup_file_path) + 1];
+    strcpy(setup_file_path_cp, setup_file_path);
+    char *setup_file_path_dirname = dirname(setup_file_path_cp);
+    char path_buffer[512];
+    char dirname_buffer[512];
+    memset(dirname_buffer, '\0', sizeof(dirname_buffer));
+    strncpy(dirname_buffer, setup_file_path_dirname, sizeof(dirname_buffer));
+    dirname_buffer[strlen(setup_file_path_dirname)] = '/';
+
+    json_object *texture_lib;
+    if (!json_object_object_get_ex(jobj, "texture_lib", &texture_lib)) {
+        fprintf(stderr,
+                "ERROR! No textures_lib attribute in set-up file\n");
+        return -1;
+    }
+
+    if (json_object_get_type(texture_lib) != json_type_object) {
+        fprintf(stderr, "ERROR! textures_lib attribute should be "
+                "a json object in set-up file\n");
+        return -1;
+    }
+
+    json_object_object_foreach(texture_lib, k, v){
+        const char *texture_fname = json_object_get_string(v);
+        memcpy(path_buffer, dirname_buffer, sizeof(dirname_buffer));
+        const char *texture_path = strncat(
+            path_buffer,
+            texture_fname,
+            sizeof(path_buffer));
+        json_object_object_add(texture_lib, k, json_object_new_int64(
+            load_texture(texture_path)));
+    }
+
+    json_object *models;
+    if (!json_object_object_get_ex(jobj, "models", &models)) {
+        fprintf(stderr,
+                "ERROR! No models attribute in set-up file\n");
+        return -1;
+    }
+
+    if (json_object_get_type(models) != json_type_array) {
+        fprintf(stderr, "ERROR! models attribute should be "
+                "a json array in set-up file\n");
+        return -1;
+    }
+
+    unsigned int models_length = 
+        (unsigned int)json_object_array_length(models);
+
+    for (unsigned int i = 0; i < models_length; i++) {
+        json_object *model_detail = json_object_array_get_idx(
+                models, i);
+
+        json_object *obj_file_fname_j;
+        if (!json_object_object_get_ex(
+                model_detail, "object_file", &obj_file_fname_j)) {
+            fprintf(stderr, "ERROR! No object_file attribute in"
+                    " model declaration\n");
+            return -1;
+        }
+        const char *obj_file_fname =
+            json_object_get_string(obj_file_fname_j);
+
+        memcpy(path_buffer, dirname_buffer, sizeof(dirname_buffer));
+        char *obj_file_fname_path = strncat(
+                path_buffer, obj_file_fname, sizeof(path_buffer));
+        model_templates[i].model = new BoalerModel(obj_file_fname_path);
+
+        json_object *r_bb_j;
+        if (!json_object_object_get_ex(
+                model_detail, "radius_bb", &r_bb_j)) {
+            fprintf(stderr, "ERROR! No radius_bb attribute in"
+                    " model declaration\n");
+            return -1;
+        }
+        model_templates[i].r_bb = json_object_get_double(r_bb_j);
+
+        json_object *textures_j;
+        if (!json_object_object_get_ex(
+                model_detail, "textures", &textures_j)) {
+            fprintf(stderr, "ERROR! No textures attribute in"
+                    " model declaration\n");
+            return -1;
+        }
+        if (load_textures_for_model_template(
+            &model_templates[i],
+            texture_lib,
+            textures_j) == -1) {
+            return -1;
+        }
+    }
+
+    free(jobj);
+    return 0;
+}
+
+MoEng::MoEng(
+        const char*setup_file_path,
+        int w,
+        int h,
+        const char *window_title,
+        unsigned int fps) : 
+    BaseEng(w, h, window_title, fps, NULL),
+    initial_camera_pos(glm::vec3(0.0f, 0.0f, 4.0f)),
+    beng(BoalerEng()),
+    billboard_shader_unit(compile_shader(
+        "resources/basic_shading.vertexshader",
+        "resources/basic_shading.fragmentshader")),
+    view_unit(BoalerViewUnit(
+        glm::lookAt(
+            glm::vec3(0.0, 0.0, -1.0),
+            glm::vec3(0.0, 0.3, 0.0),
+            glm::vec3(0.0, 1.0, 0.0)),
+        glm::perspective(44.9f, (float)w / (float)h, 0.1f, 100.0f))),
+    object_index_being_requested(0),
+    frames_since_last_entry(0),
+    last_digit_pressed(NO_DIGIT_PRESSED),
+    active_object_index(0),
+    active_object(NULL)
+{
+    input_processor = new GenInputProcessor<game_states>;
+    base_input_processor = static_cast<BaseInputProcessor *>(input_processor);
+    create_key_bindings();
 
     beng.reg_view_unit(&view_unit);
 
-    // Set up model template library
-    // BASE_MODEL_TRIANGLE:
-    model_templates[BASE_MODEL_TRIANGLE].model = new BoalerModel("triangle.bin");
-    model_templates[BASE_MODEL_TRIANGLE].r_bb = 0.8f;
-    model_templates[BASE_MODEL_TRIANGLE].textures.push_back(load_texture("resources/test_texture.png"));
-    model_templates[BASE_MODEL_TRIANGLE].textures.push_back(load_texture("resources/test_texture2.png"));
-
-    // BASE_MODEL_RECTANGLE:
-    model_templates[BASE_MODEL_RECTANGLE].model = new BoalerModel("rectangle.bin");
-    model_templates[BASE_MODEL_RECTANGLE].r_bb = 1.0f;
-    model_templates[BASE_MODEL_RECTANGLE].textures.push_back(load_texture("resources/test_texture.png"));
-    model_templates[BASE_MODEL_RECTANGLE].textures.push_back(load_texture("resources/test_texture2.png"));
+    if (setup_with_file(setup_file_path) == -1) {
+        throw MoEngReturnException();
+    }
 
     // Set up shader unit library
     GLuint shader_program = compile_shader(

@@ -1,0 +1,10 @@
+{ 
+    "texture_lib" : { "shark" : "shark/texture.png" },
+    "models" : [
+        {
+            "object_file" : "shark/shark.bin",
+            "radius_bb" : 0.8,
+            "textures" : ["shark"]
+        }
+    ]
+}

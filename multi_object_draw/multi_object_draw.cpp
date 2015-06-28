@@ -85,7 +85,7 @@ int main()
         SDL_Event event;
 
         MoEng engine(
-                "resources/test_setup.json",
+                "resources/fishbowl/fishbowl.json",
                 WIN_W,
                 WIN_H,
                 "Multi object draw",

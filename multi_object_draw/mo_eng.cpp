@@ -205,7 +205,7 @@ void MoEng::delete_active_object()
 void MoEng::change_active_object_model()
 {
     unsigned int new_model_index = (active_object->model_index + 1)
-        % 1;
+        % 2;
     active_object->change_model(new_model_index);
 }
 

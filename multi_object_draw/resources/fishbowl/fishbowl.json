@@ -1,10 +1,18 @@
 { 
-    "texture_lib" : { "shark" : "shark/texture.png" },
+    "texture_lib" : {
+        "shark" : "shark/texture.png",
+        "test"  : "toblerone_fish/texture.png"
+    },
     "models" : [
         {
             "object_file" : "shark/shark.bin",
             "radius_bb" : 0.8,
             "textures" : ["shark"]
+        },
+        {
+            "object_file" : "toblerone_fish/toblerone_fish.bin",
+            "radius_bb" : 0.8,
+            "textures" : ["test"]
         }
     ]
 }

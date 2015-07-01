@@ -46,6 +46,7 @@ void  MoObject::change_model(unsigned int new_model_index)
     model_unit->model = eng->model_templates[new_model_index].model;
     texture_index =
         eng->model_templates[new_model_index].textures[0];
+    model_unit->texture_id = texture_index;
     billboard->bb.mother_radius = eng->model_templates[new_model_index].r_bb;
     vslm_link->update_model_unit(*model_unit);
 }
@@ -306,6 +307,7 @@ int MoEng::load_textures_for_model_template(
         }
 
         GLuint t_id = (GLuint)json_object_get_int64(t_id_j);
+
         mo_template->textures.push_back(t_id);
     }
     return 0;

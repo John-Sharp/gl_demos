@@ -1,0 +1,9 @@
+gl-demos
+========
+
+A collection of demos for testing things out with openGL. Programs
+are located in the menge_sponge, hooke_cloth and multi_object_draw
+directories. Makefiles are located in these directories so cd into
+each directory and type make to compile
+
+Requires openGL, SDL2, SDL2_image, pango, cairo, json-c

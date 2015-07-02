@@ -430,7 +430,7 @@ MoEng::MoEng(
         const char *window_title,
         unsigned int fps) : 
     BaseEng(w, h, window_title, fps, NULL),
-    initial_camera_pos(glm::vec3(0.0f, 0.0f, 4.0f)),
+    initial_camera_pos(glm::vec3(0.0f, 0.0f, 10.0f)),
     beng(BoalerEng()),
     billboard_shader_unit(compile_shader(
         "resources/basic_shading.vertexshader",

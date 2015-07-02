@@ -2,7 +2,8 @@ CC = g++
 
 CFLAGS = -pg -g -Wall -lGL -lGLEW -lSDL2 -lSDL2_image -lm -ljson-c `pkg-config --cflags --libs pangocairo` 
 
-all: multi_object_draw.cpp boaler.cpp \
+all: shark.bin toblerone_fish.bin \
+	multi_object_draw.cpp boaler.cpp \
 	boaler.hpp \
 	../simple_obj_reader/bin_obj_reader.cpp \
 	../simple_obj_reader/bin_obj_reader.hpp \
@@ -28,6 +29,20 @@ all: multi_object_draw.cpp boaler.cpp \
 		../utils/base_eng/base_eng.cpp \
 		mo_eng.cpp \
 	   $(CFLAGS) -o multi_object_draw
+
+simple_obj_reader: ../simple_obj_reader/simple_obj_reader.cpp
+	$(CC) ../simple_obj_reader/simple_obj_reader.cpp \
+		$(CFLAGS) -o ../simple_obj_reader/simple_obj_reader
+
+shark.bin: simple_obj_reader
+	../simple_obj_reader/simple_obj_reader \
+		resources/fishbowl/shark/shark.obj > \
+	resources/fishbowl/shark/shark.bin
+
+toblerone_fish.bin: simple_obj_reader
+	../simple_obj_reader/simple_obj_reader \
+		resources/fishbowl/toblerone_fish/toblerone_fish.obj > \
+	resources/fishbowl/toblerone_fish/toblerone_fish.bin
 
 clean:
 	rm -f *.o multi_object_draw

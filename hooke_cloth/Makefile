@@ -2,7 +2,8 @@ CC = g++
 
 CFLAGS = -pg -g -Wall -lGL -lGLEW -lSDL2 -lSDL2_image -lm
 
-all: hooke_cloth.cpp hooke_cloth_eng.cpp \
+all: cloth.bin cursor.bin \
+	hooke_cloth.cpp hooke_cloth_eng.cpp \
 	hooke_cloth_eng.hpp \
 	../simple_obj_reader/bin_obj_reader.cpp \
 	../simple_obj_reader/bin_obj_reader.hpp \
@@ -22,6 +23,20 @@ all: hooke_cloth.cpp hooke_cloth_eng.cpp \
 		../utils/base_eng/base_eng.cpp \
 		drawable.cpp \
 	   $(CFLAGS) -o hooke_cloth
+
+cloth.obj: gen_cloth.cpp
+	$(CC) gen_cloth.cpp -o gen_cloth
+	./gen_cloth > cloth.obj
+
+cloth.bin: ../simple_obj_reader/simple_obj_reader.cpp cloth.obj
+	$(CC) ../simple_obj_reader/simple_obj_reader.cpp  \
+	   $(CFLAGS) -o ../simple_obj_reader/simple_obj_reader
+	../simple_obj_reader/simple_obj_reader cloth.obj > cloth.bin
+
+cursor.bin: ../simple_obj_reader/simple_obj_reader.cpp
+	$(CC)  ../simple_obj_reader/simple_obj_reader.cpp  \
+	   $(CFLAGS) -o ../simple_obj_reader/simple_obj_reader
+	../simple_obj_reader/simple_obj_reader cursor.obj > cursor.bin
 
 clean:
 	rm -f *.o menge_sponge gen_menge_grid

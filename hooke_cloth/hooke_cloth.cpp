@@ -23,7 +23,7 @@ enum { WIN_W = 800, WIN_H = 600, FPS = 100 };
 int main() 
 {
     SDL_Event event;
-    BaseEng engine(WIN_W, WIN_H, "Hooke Cloth", FPS);
+    BaseEng engine(WIN_W, WIN_H, "Hooke Cloth", FPS, NULL);
     bool carry_on = true;
 
     GLuint vao;

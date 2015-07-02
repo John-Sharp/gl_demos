@@ -15,6 +15,7 @@
 #include "../utils/utils.hpp"
 #include "../InputProcessor/InputProcessor.hpp"
 #include "read_menge_grid.hpp"
+#include <iostream>
 
 #define DEBUG_MODE
 
@@ -27,17 +28,21 @@ int main()
     std::vector<glm::vec3> vertices;
     std::vector<glm::vec2> uvs;
     std::vector<glm::vec3> normals;
+    std::vector<glm::vec3> ordered_vertices;
+    std::vector<GLuint> element_array_vertices_ordered_vertices_map;
 
     GLuint vao;
     glGenVertexArrays(1, &vao);
     glBindVertexArray(vao);
 
     bin_obj_read(
-        "obj", 
+        "cube.bin", 
         element_array,
         vertices,
         uvs,
-        normals);
+        normals,
+        &ordered_vertices,
+        &element_array_vertices_ordered_vertices_map);
 
     GLuint shader_program = compile_shader(
         "../shaders/basic_shading.vertexshader",
@@ -99,6 +104,7 @@ int main()
     bin_menge_grid_read(
             "3d_menge_grid_displacements.bin",
             instance_displacements);
+    std::cout << instance_displacements.size();
 
     glBindBuffer(GL_ARRAY_BUFFER, instance_model_bo);
     glBufferData(

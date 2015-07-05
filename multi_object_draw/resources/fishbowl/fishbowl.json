@@ -1,7 +1,9 @@
 { 
     "texture_lib" : {
         "shark" : "shark/texture.png",
-        "test"  : "toblerone_fish/texture.png"
+        "yellow_fish"  : "toblerone_fish/yellow_fish.png",
+        "purple_fish"  : "toblerone_fish/purple_fish.png",
+        "clown_fish"  : "toblerone_fish/clown_fish.png"
     },
     "models" : [
         {
@@ -11,8 +13,8 @@
         },
         {
             "object_file" : "toblerone_fish/toblerone_fish.bin",
-            "radius_bb" : 0.8,
-            "textures" : ["test"]
+            "radius_bb" : 2.0,
+            "textures" : ["yellow_fish", "purple_fish", "clown_fish"]
         }
     ]
 }

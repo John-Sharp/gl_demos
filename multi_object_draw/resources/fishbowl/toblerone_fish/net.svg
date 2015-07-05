@@ -1,0 +1,21 @@
+<?xml version="1.0" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 20010904//EN"
+  "http://www.w3.org/TR/2001/REC-SVG-20010904/DTD/svg10.dtd">
+<svg width="1024" height="1024">
+<g style="fill:white;stroke:black;">
+  <path d="M 0,0 0,352 265,352 Z"/>
+  <path d="M 0,352 265,352 265,565 0,565 Z"/>
+  <path d="M 0,565 265,565 0,917 Z"/>
+  <path d="M 265,565 448,671 183,1024 0,917 Z"/>
+</g>
+<g style="font-size:40;fill:black;">
+  <text x="0" y="0">1</text>
+  <text x="0" y="352">2</text>
+  <text x="265" y="352">3</text>
+  <text x="0" y="565">4</text>
+  <text x="265" y="565">5</text>
+  <text x="0" y="917">6</text>
+  <text x="448" y="671">7</text>
+  <text x="183" y="1024">8</text>
+</g>
+</svg>

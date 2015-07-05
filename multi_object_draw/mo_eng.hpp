@@ -61,6 +61,7 @@ class MoObject {
         ~MoObject();
         static void prep(MoEng *eng);
         void change_model(unsigned int new_model_index);
+        void change_texture();
         void move(glm::vec3 direction_modelspace);
         void rotate(glm::vec3 rotation_axis);
         void put_in_rotate_mode();

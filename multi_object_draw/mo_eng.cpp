@@ -44,10 +44,22 @@ void  MoObject::change_model(unsigned int new_model_index)
 {
     model_index = new_model_index;
     model_unit->model = eng->model_templates[new_model_index].model;
-    texture_index =
-        eng->model_templates[new_model_index].textures[0];
-    model_unit->texture_id = texture_index;
+    texture_index = 0;
+    model_unit->texture_id = eng->model_templates[new_model_index]
+        .textures[texture_index];
     billboard->bb.mother_radius = eng->model_templates[new_model_index].r_bb;
+    vslm_link->update_model_unit(*model_unit);
+}
+
+void MoObject::change_texture()
+{
+    unsigned int num_of_textures = eng->model_templates[model_index]
+        .textures.size();
+
+    texture_index = (texture_index + 1) % num_of_textures;
+
+    model_unit->texture_id = eng->model_templates[model_index]
+        .textures[texture_index];
     vslm_link->update_model_unit(*model_unit);
 }
 
@@ -240,6 +252,11 @@ void MoEng::do_logic()
             change_active_object_model();
         }
 
+        if (input_processor->is_state_active(CHANGE_TEXTURE)) {
+            input_processor->deactivate_state(CHANGE_TEXTURE);
+            active_object->change_texture();
+        }
+
         if (input_processor->is_state_active(ROTATE_MODE)) {
             rotate_active_object_on_request();
         } else { // just in normal move mode
@@ -264,7 +281,6 @@ void MoEng::create_key_bindings()
     input_processor->add_key_binding(SDLK_RIGHT, MV_RIGHT, BINDING_CONTINUOUS);
     input_processor->add_key_binding(SDLK_a, MV_FORWARD, BINDING_CONTINUOUS);
     input_processor->add_key_binding(SDLK_s, MV_BACKWARD, BINDING_CONTINUOUS);
-    input_processor->add_key_binding(SDLK_n, CHANGE_TEXTURE, BINDING_CONTINUOUS);
 
     input_processor->add_key_binding(SDLK_1, PRESSED_1, BINDING_CONTINUOUS);
     input_processor->add_key_binding(SDLK_2, PRESSED_2, BINDING_CONTINUOUS);
@@ -283,6 +299,7 @@ void MoEng::create_key_bindings()
     input_processor->add_key_binding(SDLK_d, DELETE_OBJECT, BINDING_ONE_TIME);
     input_processor->add_key_binding(SDLK_ESCAPE, GLOBAL_MODE_SWITCH, BINDING_ONE_TIME);
     input_processor->add_key_binding(SDLK_m, CHANGE_MODEL, BINDING_ONE_TIME);
+    input_processor->add_key_binding(SDLK_n, CHANGE_TEXTURE, BINDING_ONE_TIME);
     input_processor->add_key_binding(SDLK_RETURN, SUBMIT_REQUEST, BINDING_ONE_TIME);
 }
 

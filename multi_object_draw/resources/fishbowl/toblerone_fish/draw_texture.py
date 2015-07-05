@@ -56,11 +56,13 @@ def translate_and_scale_and_flip(points, vector, sf):
 
 def draw_and_save_shapes():
     preamble = """
- convert -size %dx%d xc:white -fill white -stroke black -draw \"push graphic-context
- fill 'white' stroke 'black' %s pop graphic-context\" net.svg""" % (
+ convert -size %dx%d xc:white -draw \"%s\" net.svg""" % (
             target_dims[0], target_dims[1], "%s")
     closed_path_string = "path 'M %s Z'"
-    shape_strings = []
+
+    annotation = " text %d,%d '%d' "
+
+    shape_strings = ["push graphic-context fill 'white' stroke 'black' "]
     for shape in shapes:
         path_contents = []
         for p in shape:
@@ -69,11 +71,24 @@ def draw_and_save_shapes():
 
         shape_strings.append(closed_path_string % " ".join(path_contents))
 
+    shape_strings.append("pop graphic-context %s")
 
     convert_command = preamble % " ".join(shape_strings)
-    print convert_command
+
+    annotation_strings = ["push graphic-context font-size 40 fill 'black' "]
+    for i, pt in enumerate(points):
+        annotation_strings.append(annotation % (pt[0], pt[1], i + 1))
+    annotation_strings.append("pop graphic-context")
+
+    convert_command = convert_command % " ".join(annotation_strings)
+
+    # print convert_command
     os.system(convert_command)
     # subprocess.call(["convert", convert_command])
+
+def print_vt_coords():
+    for pt in points:
+        print "vt %f %f" % (pt[0] / target_dims[0], pt[1] / target_dims[1])
 
 
 min_coord, max_coord = get_min_max(shapes)
@@ -82,3 +97,5 @@ sf = get_scale_factor([max_coord[0] - min_coord[0], max_coord[1] - min_coord[1]]
 translate_and_scale_and_flip(points, [-1 * m for m in min_coord], sf)
 
 draw_and_save_shapes()
+
+print_vt_coords()

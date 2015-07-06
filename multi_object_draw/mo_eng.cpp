@@ -218,7 +218,7 @@ void MoEng::delete_active_object()
 void MoEng::change_active_object_model()
 {
     unsigned int new_model_index = (active_object->model_index + 1)
-        % 2;
+        % model_templates.size();
     active_object->change_model(new_model_index);
 }
 
@@ -410,7 +410,9 @@ int MoEng::setup_with_file(const char *setup_file_path)
         memcpy(path_buffer, dirname_buffer, sizeof(dirname_buffer));
         char *obj_file_fname_path = strncat(
                 path_buffer, obj_file_fname, sizeof(path_buffer));
-        model_templates[i].model = new BoalerModel(obj_file_fname_path);
+        mo_model_template mt;
+        mt.model = new BoalerModel(obj_file_fname_path);
+        model_templates.push_back(mt);
 
         json_object *r_bb_j;
         if (!json_object_object_get_ex(

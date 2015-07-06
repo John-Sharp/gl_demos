@@ -17,7 +17,6 @@ struct MoEngReturnException : public std::exception
 {};
 
 enum {
-    NUMBER_OF_BASE_MODELS = 2,
     NUMBER_OF_SHADERS = 1,
     NUMBER_OF_OBJECTS_ALLOWED = 9
 };
@@ -126,7 +125,7 @@ class MoEng : public BaseEng {
 
         BoalerEng beng;
         BoalerShaderUnit billboard_shader_unit;
-        mo_model_template model_templates[NUMBER_OF_BASE_MODELS];
+        std::vector<mo_model_template> model_templates;
         BoalerShaderUnit *shaders[NUMBER_OF_SHADERS];
         BoalerViewUnit view_unit;
         BoalerVSLink *view_shader_links[NUMBER_OF_SHADERS];

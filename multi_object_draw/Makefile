@@ -3,8 +3,8 @@ CC = g++
 CFLAGS = -pg -g -Wall -lGL -lGLEW -lSDL2 -lSDL2_image -lm -ljson-c `pkg-config --cflags --libs pangocairo` 
 
 all: shark.bin toblerone_fish.bin \
-	multi_object_draw.cpp boaler.cpp \
-	boaler.hpp \
+	multi_object_draw.cpp ../boaler/boaler.cpp \
+	../boaler/boaler.hpp \
 	../simple_obj_reader/bin_obj_reader.cpp \
 	../simple_obj_reader/bin_obj_reader.hpp \
 	../shader_compiler/shader_compiler.cpp \
@@ -18,7 +18,7 @@ all: shark.bin toblerone_fish.bin \
 	../utils/base_eng/base_eng.cpp \
 	../utils/base_eng/base_eng.hpp \
 	mo_eng.hpp mo_eng.cpp
-	$(CC) multi_object_draw.cpp boaler.cpp \
+	$(CC) multi_object_draw.cpp ../boaler/boaler.cpp \
 		../simple_obj_reader/bin_obj_reader.cpp  \
 		../shader_compiler/shader_compiler.cpp \
 		../utils/utils.cpp \

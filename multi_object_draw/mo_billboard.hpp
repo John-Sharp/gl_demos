@@ -8,7 +8,7 @@
 #include <SDL2/SDL_opengl.h>
 #include <SDL2/SDL_image.h>
 
-#include "boaler.hpp"
+#include "../boaler/boaler.hpp"
 #include "../text_texture/text_texture.hpp"
 #include "../billboard/billboard.hpp"
 

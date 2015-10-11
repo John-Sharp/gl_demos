@@ -6,6 +6,8 @@
 #include <SDL2/SDL_image.h>
 #include <stdbool.h>
 
+#include "input_processor.h"
+
 typedef struct engine engine;
 
 struct engine 

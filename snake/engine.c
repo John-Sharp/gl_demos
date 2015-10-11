@@ -23,7 +23,7 @@ engine *engine_init(
 
     eng.start_time = 0;
     eng.should_start_logic_loop = false;
-    unsigned int whole_frames_to_do = 0;
+    // unsigned int whole_frames_to_do = 0;
 
     if(SDL_Init(SDL_INIT_VIDEO) == -1){
         fprintf(
@@ -72,6 +72,14 @@ void engine_destroy()
 
 void engine_start()
 {
-}
+    bool carry_on = true;
 
+    while (carry_on) {
+        process_input();
+
+        if (is_state_active(GS_QUIT)) {
+            carry_on = false;
+        }
+    }
+}
 #endif

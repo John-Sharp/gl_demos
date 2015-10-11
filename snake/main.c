@@ -9,8 +9,6 @@ int main()
             100);
 
     engine_start();
-    while(1){
-    }
 
     engine_destroy();
 }

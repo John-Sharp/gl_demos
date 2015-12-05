@@ -21,6 +21,14 @@ struct engine
     Uint32 start_time;
     bool should_start_logic_loop;
     unsigned int whole_frames_to_do;
+
+    // vertex buffer object for the square that is 
+    // used for drawing sprites
+    GLuint sprite_vertex_bo;
+
+    // shader program for shading the sprites displayed
+    // by the engine
+    GLuint shader_program;
 };
 
 engine *engine_init(

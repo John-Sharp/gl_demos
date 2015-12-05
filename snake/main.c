@@ -8,7 +8,7 @@ int main()
             "Snake",
             100);
 
-    engine_start();
+   engine_start();
 
     engine_destroy();
 }

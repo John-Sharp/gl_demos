@@ -11,6 +11,9 @@
 
 engine eng;
 
+void setup_sprite_vertex_data();
+void setup_shader();
+
 engine *engine_init(
         unsigned int w,
         unsigned int h,
@@ -60,6 +63,10 @@ engine *engine_init(
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
+    setup_sprite_vertex_data();
+
+    setup_shader();
+
     return &eng;
 }
 
@@ -80,6 +87,68 @@ void engine_start()
         if (is_state_active(GS_QUIT)) {
             carry_on = false;
         }
+
+        glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT);
+        glDrawArrays(GL_TRIANGLES, 0, 6);
+
+        SDL_GL_SwapWindow(eng.window);
     }
+}
+
+void setup_sprite_vertex_data()
+{
+    GLfloat vertices[] = {
+        -1.0f, -1.0f,
+        1.0f, -1.0f,
+        -1.0f,  1.0f,
+        -1.0f,  1.0f,
+        1.0f, -1.0f,
+        1.0f,  1.0f
+    } ;
+
+    glGenBuffers(1, &(eng.sprite_vertex_bo));
+    glBindBuffer(GL_ARRAY_BUFFER, eng.sprite_vertex_bo);
+    glBufferData(
+            GL_ARRAY_BUFFER,
+            sizeof(vertices),
+            vertices,
+            GL_STATIC_DRAW);
+}
+
+void setup_shader()
+{
+    char simple_vertexshader[] = {
+#include "simple_vertexshader.h"
+    };
+    const char * p_simple_vertexshader = simple_vertexshader;
+
+    char simple_fragmentshader[] = {
+#include "simple_fragmentshader.h"
+    };
+    const char * p_simple_fragmentshader = simple_fragmentshader;
+
+    GLuint vao;
+    glGenVertexArrays(1, &vao);
+    glBindVertexArray(vao);
+
+    GLuint vertex_shader = glCreateShader(GL_VERTEX_SHADER);
+    glShaderSource(vertex_shader, 1, &(p_simple_vertexshader), NULL);
+    glCompileShader(vertex_shader);
+
+    GLuint fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
+    glShaderSource(fragment_shader, 1, &(p_simple_fragmentshader), NULL);
+    glCompileShader(vertex_shader);
+
+    eng.shader_program = glCreateProgram();
+    glAttachShader(eng.shader_program, vertex_shader);
+    glAttachShader(eng.shader_program, fragment_shader);
+    glLinkProgram(eng.shader_program);
+    glUseProgram(eng.shader_program);
+
+    glBindBuffer(GL_ARRAY_BUFFER, eng.sprite_vertex_bo);
+    GLint pos_attrib = glGetAttribLocation(eng.shader_program, "pos"); 
+    glVertexAttribPointer(pos_attrib, 2, GL_FLOAT, GL_FALSE, 0, 0);
+    glEnableVertexAttribArray(pos_attrib);
 }
 #endif

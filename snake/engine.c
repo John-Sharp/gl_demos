@@ -13,6 +13,7 @@ engine eng;
 
 void setup_sprite_vertex_data();
 void setup_shader();
+void setup_projection_matrix();
 
 engine *engine_init(
         unsigned int w,
@@ -42,6 +43,8 @@ engine *engine_init(
             w,
             h,
             SDL_WINDOW_OPENGL);
+    eng.w = w;
+    eng.h = h;
 
     if(eng.window == NULL) {
         fprintf(
@@ -66,6 +69,8 @@ engine *engine_init(
     setup_sprite_vertex_data();
 
     setup_shader();
+
+    setup_projection_matrix();
 
     return &eng;
 }
@@ -150,5 +155,18 @@ void setup_shader()
     GLint pos_attrib = glGetAttribLocation(eng.shader_program, "pos"); 
     glVertexAttribPointer(pos_attrib, 2, GL_FLOAT, GL_FALSE, 0, 0);
     glEnableVertexAttribArray(pos_attrib);
+}
+
+void setup_projection_matrix()
+{
+    GLfloat P[] = {
+        1/(float)eng.w, 0,              0, 0,
+        0,              1/(float)eng.h, 0, 0,
+        0,              0,              0, 0,
+        0,              0,              0, 1 
+    };
+
+    GLint P_unfm = glGetUniformLocation(eng.shader_program, "P");
+    glUniformMatrix4fv(P_unfm, 1, GL_FALSE, P);
 }
 #endif

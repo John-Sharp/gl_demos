@@ -16,6 +16,8 @@ struct engine
     unsigned int current_frame;
     unsigned int frames_last_render_loop;
     SDL_Window *window;
+    unsigned int w;
+    unsigned int h;
     SDL_GLContext main_context;
 
     Uint32 start_time;

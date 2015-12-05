@@ -14,6 +14,7 @@ engine eng;
 void setup_sprite_vertex_data();
 void setup_shader();
 void setup_projection_matrix();
+void setup_uniforms();
 
 engine *engine_init(
         unsigned int w,
@@ -71,6 +72,8 @@ engine *engine_init(
     setup_shader();
 
     setup_projection_matrix();
+
+    setup_uniforms();
 
     return &eng;
 }
@@ -150,6 +153,18 @@ void setup_shader()
     glAttachShader(eng.shader_program, fragment_shader);
     glLinkProgram(eng.shader_program);
     glUseProgram(eng.shader_program);
+    
+
+#ifdef DEBUG
+    GLint status;
+    glGetShaderiv(vertex_shader, GL_COMPILE_STATUS, &status);
+    char buffer[512];
+    glGetShaderInfoLog(vertex_shader, 512, NULL, buffer);
+    fprintf(stderr, "%s\n", buffer);
+
+    glGetProgramInfoLog(eng.shader_program, 512, NULL, buffer);
+    fprintf(stderr, "%s\n", buffer);
+#endif
 
     glBindBuffer(GL_ARRAY_BUFFER, eng.sprite_vertex_bo);
     GLint pos_attrib = glGetAttribLocation(eng.shader_program, "pos"); 
@@ -160,13 +175,27 @@ void setup_shader()
 void setup_projection_matrix()
 {
     GLfloat P[] = {
-        1/(float)eng.w, 0,              0, 0,
-        0,              1/(float)eng.h, 0, 0,
-        0,              0,              0, 0,
-        0,              0,              0, 1 
+        2/(float)eng.w, 0,              0, -1,
+        0,              2/(float)eng.h, 0, -1,
+        0,              0,              0,  0,
+        0,              0,              0,  1 
     };
 
     GLint P_unfm = glGetUniformLocation(eng.shader_program, "P");
-    glUniformMatrix4fv(P_unfm, 1, GL_FALSE, P);
+    glUniformMatrix4fv(P_unfm, 1, GL_TRUE, P);
+}
+
+void setup_uniforms()
+{
+    eng.w_unfm = glGetUniformLocation(eng.shader_program, "w");
+    eng.h_unfm = glGetUniformLocation(eng.shader_program, "h");
+    eng.r_unfm = glGetUniformLocation(eng.shader_program, "r");
+
+    GLfloat r[] = { 800, 600 };
+
+    glUniform1f(eng.w_unfm, 10);
+    glUniform1f(eng.h_unfm, 10);
+    glUniform2fv(eng.r_unfm, 1, r);
+
 }
 #endif

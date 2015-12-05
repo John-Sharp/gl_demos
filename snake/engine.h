@@ -31,6 +31,10 @@ struct engine
     // shader program for shading the sprites displayed
     // by the engine
     GLuint shader_program;
+
+    GLint w_unfm;
+    GLint h_unfm;
+    GLint r_unfm;
 };
 
 engine *engine_init(

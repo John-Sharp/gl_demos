@@ -6,10 +6,13 @@ in vec2 pos;
 // out vec2 uv_;
 // 
 // uniform vec2 r;
+uniform float w;
+uniform float h;
+uniform vec2 r;
 uniform mat4 P;
 
 void main()
 {
     // uv_ = uv;
-    gl_Position = P * vec4(pos, 0.0, 1.0); //  + r;
+    gl_Position = P * (vec4(w * pos.x, h * pos.y, 0.0, 1.0)  + vec4(r, 0, 0));
 }

@@ -1,32 +1,30 @@
+#include "engine.h"
 #include "sprite.h"
+
+sprite_list *sprite_list_add(sprite_list *spl, sprite *sp)
+{
+    sprite_list *new_node = malloc(sizeof(*new_node));
+    new_node->sp = sp;
+    new_node->next = spl;
+    return new_node;
+}
 
 sprite *sprite_init(
         sprite *sp,
         double w,
         double h,
-        texture *tex,
-        SDL_Rect texture_area)
+        int *tex,
+        const SDL_Rect *texture_area)
 {
-    GLfloat vertices[] = {
-        -1.0f, -1.0f, 0.0f,
-         1.0f, -1.0f, 0.0f,
-        -1.0f,  1.0f, 0.0f,
-        -1.0f,  1.0f, 0.0f,
-         1.0f, -1.0f, 0.0f,
-         1.0f,  1.0f, 0.0f
-    } ;
-        
-    glBindVertexArray(sp->vao);
-
-    glGenBuffers(1, &(sp->vertex_bo));
-    glBindBuffer(GL_ARRAY_BUFFER, sp->vertex_bo);
-    glBufferData(
-        GL_ARRAY_BUFFER,
-        sizeof(vertices),
-        vertices,
-        GL_STATIC_DRAW);
-
-    glBindVertexArray(sp->vao);
-
+    sp->w = w;
+    sp->h = h;
     return sp;
+}
+
+void sprite_render(sprite *sp)
+{
+    glUniform1f(eng.w_unfm, sp->w);
+    glUniform1f(eng.h_unfm, sp->h);
+    glUniform2fv(eng.r_unfm, 1, sp->r);
+    glDrawArrays(GL_TRIANGLES, 0, 6);
 }

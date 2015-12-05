@@ -1,6 +1,3 @@
-#ifndef ENGINE_H
-#define ENGINE_H
-
 #include "engine.h"
 
 #include <GL/glew.h>
@@ -8,8 +5,6 @@
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_opengl.h>
-
-engine eng;
 
 void setup_sprite_vertex_data();
 void setup_shader();
@@ -75,6 +70,8 @@ engine *engine_init(
 
     setup_uniforms();
 
+    eng.render_list = NULL;
+
     return &eng;
 }
 
@@ -98,7 +95,11 @@ void engine_start()
 
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
-        glDrawArrays(GL_TRIANGLES, 0, 6);
+
+        sprite_list *spl;
+        for (spl = eng.render_list; spl != NULL; spl = spl->next) {
+            sprite_render(spl->sp);
+        }
 
         SDL_GL_SwapWindow(eng.window);
     }
@@ -190,12 +191,4 @@ void setup_uniforms()
     eng.w_unfm = glGetUniformLocation(eng.shader_program, "w");
     eng.h_unfm = glGetUniformLocation(eng.shader_program, "h");
     eng.r_unfm = glGetUniformLocation(eng.shader_program, "r");
-
-    GLfloat r[] = { 800, 600 };
-
-    glUniform1f(eng.w_unfm, 10);
-    glUniform1f(eng.h_unfm, 10);
-    glUniform2fv(eng.r_unfm, 1, r);
-
 }
-#endif

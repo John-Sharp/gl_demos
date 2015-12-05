@@ -1,3 +1,6 @@
+#ifndef ENGINE_H
+#define ENGINE_H
+
 #include <GL/glew.h>
 #include <GL/gl.h>
 
@@ -7,6 +10,7 @@
 #include <stdbool.h>
 
 #include "input_processor.h"
+#include "sprite.h"
 
 typedef struct engine engine;
 
@@ -35,7 +39,11 @@ struct engine
     GLint w_unfm;
     GLint h_unfm;
     GLint r_unfm;
+
+    sprite_list *render_list;
 };
+
+engine eng;
 
 engine *engine_init(
         unsigned int w,
@@ -46,3 +54,5 @@ engine *engine_init(
 void engine_destroy();
 
 void engine_start();
+
+#endif

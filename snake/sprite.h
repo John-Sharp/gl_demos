@@ -2,18 +2,29 @@
 #define SPRITE_H
 
 typedef struct sprite sprite;
+typedef struct sprite_list sprite_list;
 
 struct sprite
 {
-    GLuint vertex_bo;
+    GLfloat w;
+    GLfloat h;
+    GLfloat r[2];
 };
+
+struct sprite_list
+{
+    sprite *sp;
+    sprite_list *next;
+};
+
+sprite_list *sprite_list_add(sprite_list *spl, sprite *sp);
 
 sprite *sprite_init(
         sprite *sp,
         double w,
         double h,
-        texture *tex,
-        SDL_Rect texture_area);
+        int *tex,
+        const SDL_Rect *texture_area);
 
 void sprite_destroy(sprite *sp);
 

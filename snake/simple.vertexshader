@@ -1,11 +1,10 @@
 #version 330
 
 in vec2 pos;
-// in vec2 uv;
-// 
-// out vec2 uv_;
-// 
-// uniform vec2 r;
+in vec2 uv;
+ 
+out vec2 uv_;
+ 
 uniform float w;
 uniform float h;
 uniform vec2 r;
@@ -13,6 +12,6 @@ uniform mat4 P;
 
 void main()
 {
-    // uv_ = uv;
+    uv_ = uv;
     gl_Position = P * (vec4(w/2 * pos.x, h/2 * pos.y, 0.0, 1.0)  + vec4(r, 0, 0));
 }

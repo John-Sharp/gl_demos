@@ -14,6 +14,13 @@
 
 typedef struct engine engine;
 
+enum
+{
+    SAND_TEXTURE,
+    SPRITES_TEXTURE,
+    NUM_TEXTURES
+};
+
 struct engine 
 {
     unsigned int fps;
@@ -39,8 +46,13 @@ struct engine
     GLint w_unfm;
     GLint h_unfm;
     GLint r_unfm;
+    GLint texture_sampler_unfm;
+
+    GLint pos_attrib;
+    GLint uv_attrib;
 
     sprite_list *render_list;
+    GLuint textures[NUM_TEXTURES];
 };
 
 engine eng;

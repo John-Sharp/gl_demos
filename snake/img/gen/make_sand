@@ -7,4 +7,4 @@ convert temp.png -alpha copy -fx '#fff' sand.png
 convert sand.png +level-colors black,${sand_fg} -blur 0x0.8 sand.png
 convert -size ${width}x${height} canvas:${sand_bg} test.png
 
-convert test.png sand.png -composite ../sand.png
+convert test.png sand.png -composite png32:../sand.png

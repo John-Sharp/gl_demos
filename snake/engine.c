@@ -1,3 +1,4 @@
+#define DEBUG
 #include "engine.h"
 
 #include <GL/glew.h>
@@ -5,11 +6,15 @@
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_opengl.h>
+#include <SDL2/SDL_image.h>
 
 void setup_sprite_vertex_data();
 void setup_shader();
 void setup_projection_matrix();
 void setup_uniforms();
+void setup_attributes();
+void setup_texture_params();
+void load_textures();
 
 engine *engine_init(
         unsigned int w,
@@ -69,6 +74,9 @@ engine *engine_init(
     setup_projection_matrix();
 
     setup_uniforms();
+    setup_attributes();
+
+    load_textures();
 
     eng.render_list = NULL;
 
@@ -102,6 +110,7 @@ void engine_start()
         }
 
         SDL_GL_SwapWindow(eng.window);
+
     }
 }
 
@@ -191,4 +200,57 @@ void setup_uniforms()
     eng.w_unfm = glGetUniformLocation(eng.shader_program, "w");
     eng.h_unfm = glGetUniformLocation(eng.shader_program, "h");
     eng.r_unfm = glGetUniformLocation(eng.shader_program, "r");
+    eng.texture_sampler_unfm = glGetUniformLocation(
+            eng.shader_program, "texture_sampler");
+}
+
+void setup_attributes()
+{
+    eng.pos_attrib = glGetAttribLocation(eng.shader_program, "pos"); 
+    eng.uv_attrib = glGetAttribLocation(eng.shader_program, "uv"); 
+}
+
+void setup_texture_params()
+{
+    // Possible values: 
+    //  GL_REPEAT
+    //  GL_MIRRORED_REPEAT
+    //  GL_CLAMP_TO_EDGE
+    //  GL_CLAMP_TO_BORDER
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    glGenerateMipmap(GL_TEXTURE_2D);
+}
+
+void load_textures()
+{
+    char * filenames[] = {
+        "img/sand.png",
+        "img/sprites.png"
+    };
+    int i;
+
+    glGenTextures(NUM_TEXTURES, eng.textures);
+
+    for (i = 0; i < sizeof(filenames) / sizeof(filenames[0]); i++) {
+        char * fname = filenames[i];
+        SDL_Surface *img = IMG_Load(fname);
+
+        if(!img){
+            fprintf(stderr, "Error! Could not load %s\n", fname);
+            exit(1);
+        }
+        
+        glActiveTexture(GL_TEXTURE0 + i);
+        glBindTexture(GL_TEXTURE_2D, eng.textures[i]);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, img->w, img->h,
+                0, GL_RGBA, GL_UNSIGNED_BYTE, img->pixels);
+        SDL_FreeSurface(img);
+
+        setup_texture_params();
+    }
 }

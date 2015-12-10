@@ -14,7 +14,8 @@ void setup_projection_matrix();
 void setup_uniforms();
 void setup_attributes();
 void setup_texture_params();
-void load_textures();
+void setup_textures();
+void setup_decals();
 
 engine *engine_init(
         unsigned int w,
@@ -76,7 +77,8 @@ engine *engine_init(
     setup_uniforms();
     setup_attributes();
 
-    load_textures();
+    setup_textures();
+    setup_decals();
 
     eng.render_list = NULL;
 
@@ -226,7 +228,7 @@ void setup_texture_params()
     glGenerateMipmap(GL_TEXTURE_2D);
 }
 
-void load_textures()
+void setup_textures()
 {
     char * filenames[] = {
         "img/sand.png",
@@ -253,4 +255,32 @@ void load_textures()
 
         setup_texture_params();
     }
+}
+
+void setup_decals()
+{
+    int i;
+
+    for (i = 0; i < NUM_SPRITES_DECALS; i++) {
+        GLfloat w = 1/8.;
+        GLfloat h = 1/2.;
+        GLfloat x = (float)(i % 8) * w;
+        GLfloat y = (float)(i / 8) * h;
+
+        decal_init(
+                &eng.sprites_decals[i],
+                SPRITES_TEXTURE,
+                x,
+                y,
+                w,
+                h);
+    }
+
+    decal_init(
+        &(eng.sand_decal),
+        SAND_TEXTURE,
+        0,
+        0,
+        1,
+        1);
 }

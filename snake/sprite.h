@@ -1,6 +1,8 @@
 #ifndef SPRITE_H
 #define SPRITE_H
 
+#include "decal.h"
+
 typedef struct sprite sprite;
 typedef struct sprite_list sprite_list;
 
@@ -10,12 +12,9 @@ struct sprite
     GLfloat h;
     GLfloat r[2];
 
-    GLuint uv_bo;
     GLuint vao;
 
-    GLfloat uvs[12];
-
-    GLuint texture_index;
+    decal *d;
 };
 
 struct sprite_list
@@ -30,8 +29,7 @@ sprite *sprite_init(
         sprite *sp,
         double w,
         double h,
-        GLuint texture_index,
-        const SDL_Rect *texture_area);
+        decal *d);
 
 void sprite_destroy(sprite *sp);
 

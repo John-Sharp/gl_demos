@@ -21,6 +21,27 @@ enum
     NUM_TEXTURES
 };
 
+enum SPRITES_DECALS
+{
+    TAIL_S,
+    TAIL_W,
+    HEAD_N,
+    HEAD_E,
+    BODY_SE,
+    BODY_SW,
+    BODY_NW,
+    BLANK,
+    TAIL_E,
+    TAIL_N,
+    HEAD_W,
+    HEAD_S,
+    BODY_N,
+    BODY_E,
+    BODY_NE,
+    APPLE,
+    NUM_SPRITES_DECALS
+};
+
 struct engine 
 {
     unsigned int fps;
@@ -53,6 +74,8 @@ struct engine
 
     sprite_list *render_list;
     GLuint textures[NUM_TEXTURES];
+    decal sprites_decals[NUM_SPRITES_DECALS];
+    decal sand_decal;
 };
 
 engine eng;

@@ -17,14 +17,6 @@ struct sprite
     decal *d;
 };
 
-struct sprite_list
-{
-    sprite *sp;
-    sprite_list *next;
-};
-
-sprite_list *sprite_list_add(sprite_list *spl, sprite *sp);
-
 sprite *sprite_init(
         sprite *sp,
         double w,

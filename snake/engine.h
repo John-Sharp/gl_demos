@@ -11,6 +11,7 @@
 
 #include "input_processor.h"
 #include "sprite.h"
+#include "actor.h"
 
 typedef struct engine engine;
 
@@ -40,6 +41,10 @@ enum SPRITES_DECALS
     BODY_NE,
     APPLE,
     NUM_SPRITES_DECALS
+};
+
+enum {
+    MAX_SNAKE_SEGMENTS = 8
 };
 
 struct engine 
@@ -72,7 +77,7 @@ struct engine
     GLint pos_attrib;
     GLint uv_attrib;
 
-    sprite_list *render_list;
+    actor_list *render_list;
     GLuint textures[NUM_TEXTURES];
     decal sprites_decals[NUM_SPRITES_DECALS];
     decal sand_decal;

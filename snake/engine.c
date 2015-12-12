@@ -106,9 +106,9 @@ void engine_start()
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
-        sprite_list *spl;
-        for (spl = eng.render_list; spl != NULL; spl = spl->next) {
-            sprite_render(spl->sp);
+        actor_list *al;
+        for (al = eng.render_list; al != NULL; al = al->next) {
+            al->a->render_handler(al->a);
         }
 
         SDL_GL_SwapWindow(eng.window);

@@ -51,7 +51,6 @@ struct engine
 {
     unsigned int fps;
     unsigned int current_frame;
-    unsigned int frames_last_render_loop;
     SDL_Window *window;
     unsigned int w;
     unsigned int h;
@@ -78,6 +77,8 @@ struct engine
     GLint uv_attrib;
 
     actor_list *render_list;
+    actor_list *logic_list;
+
     GLuint textures[NUM_TEXTURES];
     decal sprites_decals[NUM_SPRITES_DECALS];
     decal sand_decal;

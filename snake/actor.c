@@ -11,8 +11,10 @@ actor_list *actor_list_add(actor_list *al, actor *a)
 
 actor *actor_init(
         actor *a,
-        actor_render_handler render_handler)
+        actor_render_handler render_handler,
+        actor_logic_handler logic_handler)
 {
     a->render_handler = render_handler;
+    a->logic_handler = logic_handler;
     return a;
 }

@@ -9,7 +9,7 @@ void background_render_handler(actor *a)
 
 background_actor *background_actor_init(background_actor *bg)
 {
-    actor_init(&bg->a, background_render_handler);
+    actor_init(&bg->a, background_render_handler, NULL);
     sprite_init(
             &bg->background_sprite, 
             800,

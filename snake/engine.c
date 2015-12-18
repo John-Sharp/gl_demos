@@ -16,6 +16,7 @@ void setup_attributes();
 void setup_texture_params();
 void setup_textures();
 void setup_decals();
+bool should_continue_logic_loops();
 
 engine *engine_init(
         unsigned int w,
@@ -25,11 +26,10 @@ engine *engine_init(
 {
     eng.fps = fps;
     eng.current_frame = 0;
-    eng.frames_last_render_loop = 0;
 
     eng.start_time = 0;
-    eng.should_start_logic_loop = false;
-    // unsigned int whole_frames_to_do = 0;
+    eng.should_start_logic_loop = true;
+    eng.whole_frames_to_do = 0;
 
     if(SDL_Init(SDL_INIT_VIDEO) == -1){
         fprintf(
@@ -81,6 +81,7 @@ engine *engine_init(
     setup_decals();
 
     eng.render_list = NULL;
+    eng.logic_list = NULL;
 
     return &eng;
 }
@@ -96,6 +97,7 @@ void engine_start()
 {
     bool carry_on = true;
 
+    eng.start_time = SDL_GetTicks();
     while (carry_on) {
         process_input();
 
@@ -113,6 +115,11 @@ void engine_start()
 
         SDL_GL_SwapWindow(eng.window);
 
+        while (should_continue_logic_loops()) {
+            for (al = eng.logic_list; al != NULL; al = al->next) {
+                al->a->logic_handler(al->a);
+            }
+        }
     }
 }
 
@@ -283,4 +290,24 @@ void setup_decals()
         0,
         1,
         1);
+}
+
+bool should_continue_logic_loops()
+{
+    if (eng.should_start_logic_loop) {
+        unsigned int logic_loop_start_time = SDL_GetTicks();
+        double elapsed_frames = (double)(logic_loop_start_time \
+                - eng.start_time) / 1000.0f * eng.fps;
+        eng.whole_frames_to_do = (unsigned int)elapsed_frames - eng.current_frame;
+    }
+
+    if (!eng.whole_frames_to_do) {
+        eng.should_start_logic_loop = true;
+        return false;
+    }
+
+    eng.whole_frames_to_do -= 1;
+    eng.current_frame += 1;
+    eng.should_start_logic_loop = false;
+    return true;
 }

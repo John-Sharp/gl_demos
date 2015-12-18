@@ -10,10 +10,15 @@ void snake_render_handler(actor *a)
     }
 }
 
+void snake_logic_handler(actor *a)
+{
+    fprintf(stderr, "doing snake logic\n");
+}
+
 snake_actor *snake_actor_init(snake_actor *sn)
 {
     sn->num_segments = 3;
-    actor_init(&(sn->a), snake_render_handler);
+    actor_init(&(sn->a), snake_render_handler, snake_logic_handler);
     int i;
     enum SPRITES_DECALS snake_init_config[] = {TAIL_E, BODY_E, HEAD_E};
     GLfloat tail_pos[] = {40, 40};

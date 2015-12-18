@@ -13,6 +13,7 @@ int main()
     snake_actor sn;
     snake_actor_init(&sn);
     eng->render_list = actor_list_add(eng->render_list, (actor *)(&sn));
+    eng->logic_list = actor_list_add(eng->logic_list, (actor *)(&sn));
 
     background_actor bg;
     background_actor_init(&bg);

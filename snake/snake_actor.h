@@ -9,6 +9,10 @@ struct snake_actor {
     actor a;
     int num_segments;
     sprite snake_sprites[MAX_SNAKE_SEGMENTS];
+    DIRECTION direction;
+
+    unsigned int snake_frame_ratio;
+    unsigned int tail_index;
 };
 
 snake_actor *snake_actor_init(snake_actor *sn);

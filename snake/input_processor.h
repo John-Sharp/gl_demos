@@ -13,6 +13,10 @@ typedef enum game_state
 {
     GS_ONE,
     GS_TWO,
+    GS_N,
+    GS_E,
+    GS_S,
+    GS_W,
     GS_QUIT
 } game_state;
 

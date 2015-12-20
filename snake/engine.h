@@ -15,6 +15,14 @@
 
 typedef struct engine engine;
 
+typedef enum DIRECTION
+{
+    DIRECTION_N,
+    DIRECTION_E,
+    DIRECTION_S,
+    DIRECTION_W
+} DIRECTION;
+
 enum
 {
     SAND_TEXTURE,
@@ -22,7 +30,7 @@ enum
     NUM_TEXTURES
 };
 
-enum SPRITES_DECALS
+typedef enum SPRITES_DECALS
 {
     TAIL_S,
     TAIL_W,
@@ -41,7 +49,7 @@ enum SPRITES_DECALS
     BODY_NE,
     APPLE,
     NUM_SPRITES_DECALS
-};
+} SPRITES_DECALS;
 
 enum {
     MAX_SNAKE_SEGMENTS = 8

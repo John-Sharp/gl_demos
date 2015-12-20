@@ -25,8 +25,8 @@ sprite *sprite_init(
 
 void sprite_destroy(sprite *sp);
 
-void sprite_set_uvs(sprite *sp, const GLfloat *uvs);
-
 void sprite_render(sprite *sp);
+
+void sprite_set_decal(sprite *sp, decal *d);
 
 #endif

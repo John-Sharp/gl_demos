@@ -45,3 +45,11 @@ void sprite_render(sprite *sp)
             fprintf(stderr, "%x\n", errno);
         }
 }
+
+void sprite_set_decal(sprite *sp, decal *d)
+{
+    glBindVertexArray(sp->vao);
+    sp->d = d;
+    glBindBuffer(GL_ARRAY_BUFFER, d->uv_bo);
+    glVertexAttribPointer(eng.uv_attrib, 2, GL_FLOAT, GL_FALSE, 0, 0);
+}

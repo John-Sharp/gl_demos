@@ -16,6 +16,7 @@ void setup_attributes();
 void setup_texture_params();
 void setup_textures();
 void setup_decals();
+void setup_bindings();
 bool should_continue_logic_loops();
 
 engine *engine_init(
@@ -79,6 +80,8 @@ engine *engine_init(
 
     setup_textures();
     setup_decals();
+
+    setup_bindings();
 
     eng.render_list = NULL;
     eng.logic_list = NULL;
@@ -310,4 +313,27 @@ bool should_continue_logic_loops()
     eng.current_frame += 1;
     eng.should_start_logic_loop = false;
     return true;
+}
+
+void setup_bindings()
+{
+    input_processor_init();
+    key_state_binding binding;
+
+    binding.k = SDLK_UP;
+    binding.s = GS_N;
+    binding.t = BINDING_ONE_TIME;
+    add_binding(&binding);
+
+    binding.k = SDLK_RIGHT;
+    binding.s = GS_E;
+    add_binding(&binding);
+
+    binding.k = SDLK_DOWN;
+    binding.s = GS_S;
+    add_binding(&binding);
+
+    binding.k = SDLK_LEFT;
+    binding.s = GS_W;
+    add_binding(&binding);
 }

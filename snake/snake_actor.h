@@ -8,8 +8,12 @@ typedef struct snake_actor snake_actor;
 struct snake_actor {
     actor a;
     int num_segments;
+    unsigned int segment_w;
+    unsigned int segment_h;
+
     sprite snake_sprites[MAX_SNAKE_SEGMENTS];
     DIRECTION direction;
+
 
     unsigned int snake_frame_ratio;
     unsigned int tail_index;

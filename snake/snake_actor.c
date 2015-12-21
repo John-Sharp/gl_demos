@@ -1,4 +1,4 @@
-#include "snake_actor.h"
+#include "engine.h"
 
 void snake_render_handler(actor *a)
 {
@@ -138,6 +138,21 @@ void snake_apply_boundary_conditions(snake_actor *sn, GLfloat *r)
     }
 }
 
+sprite *snake_get_head_sprite(snake_actor *sn)
+{
+    int head_index = ((sn->tail_index - 1 + sn->num_segments) % sn->num_segments);
+    return &sn->snake_sprites[head_index];
+}
+
+void snake_apple_collision_detect(snake_actor *sn)
+{
+    sprite *snake_head = snake_get_head_sprite(sn);
+    if (snake_head->r[0] == eng.apple_actor.sprite.r[0] 
+            && snake_head->r[1] == eng.apple_actor.sprite.r[1]) {
+        apple_replace(&eng.apple_actor);
+    }
+}
+
 void snake_logic_handler(actor *a)
 {
     snake_actor * sn = (snake_actor *)a;
@@ -171,8 +186,7 @@ void snake_logic_handler(actor *a)
             }
         }
 
-        int old_head_index = ((sn->tail_index - 1 + sn->num_segments) % sn->num_segments);
-        sprite *old_head = &sn->snake_sprites[old_head_index];
+        sprite *old_head = snake_get_head_sprite(sn);
         SPRITES_DECALS decal = snake_get_neck_decal(sn, old_direction);
         sprite_set_decal(old_head, &(eng.sprites_decals[decal]));
 
@@ -190,6 +204,8 @@ void snake_logic_handler(actor *a)
 
         decal = snake_get_tail_decal(sn);
         sprite_set_decal(&sn->snake_sprites[sn->tail_index], &(eng.sprites_decals[decal]));
+
+        snake_apple_collision_detect(sn);
     }
 }
 

@@ -16,6 +16,7 @@ void setup_attributes();
 void setup_texture_params();
 void setup_textures();
 void setup_decals();
+void setup_actors();
 void setup_bindings();
 bool should_continue_logic_loops();
 
@@ -85,6 +86,8 @@ engine *engine_init(
 
     eng.render_list = NULL;
     eng.logic_list = NULL;
+
+    setup_actors();
 
     return &eng;
 }
@@ -293,6 +296,19 @@ void setup_decals()
         0,
         1,
         1);
+}
+
+void setup_actors()
+{
+    snake_actor_init(&eng.snake_actor);
+    eng.render_list = actor_list_add(eng.render_list, (actor *)(&eng.snake_actor));
+    eng.logic_list = actor_list_add(eng.logic_list, (actor *)(&eng.snake_actor));
+
+    apple_actor_init(&eng.apple_actor);
+    eng.render_list = actor_list_add(eng.render_list, (actor *)(&eng.apple_actor));
+
+    background_actor_init(&eng.background_actor);
+    eng.render_list = actor_list_add(eng.render_list, (actor *)(&eng.background_actor));
 }
 
 bool should_continue_logic_loops()

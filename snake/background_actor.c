@@ -1,4 +1,4 @@
-#include "background_actor.h"
+#include "engine.h"
 
 void background_render_handler(actor *a)
 {

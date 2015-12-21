@@ -55,6 +55,10 @@ enum {
     MAX_SNAKE_SEGMENTS = 8
 };
 
+#include "apple_actor.h"
+#include "snake_actor.h"
+#include "background_actor.h"
+
 struct engine 
 {
     unsigned int fps;
@@ -90,6 +94,10 @@ struct engine
     GLuint textures[NUM_TEXTURES];
     decal sprites_decals[NUM_SPRITES_DECALS];
     decal sand_decal;
+
+    apple_actor apple_actor;
+    background_actor background_actor;
+    snake_actor snake_actor;
 };
 
 engine eng;
